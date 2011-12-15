@@ -21,6 +21,9 @@
 ?>
 
 <head>
+<script src="js/jquery-1.7.1.js"></script>
+<script src="js/tweaks.js"	></script>
+<script src="js/dimg.js"	></script>
 <!--	I need a few javascript libraries.
 
 	jquery.js
