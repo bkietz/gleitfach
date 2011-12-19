@@ -1,20 +1,13 @@
 $.extend($.prototype,{
 
-////////////////////////////////////////
-// Edit!
-//	let the first entry be either
-//		A) a single function for all three
-//		B) an array of functions
-//	store the entire event on start,
-//		not just dragStartX/Y
-////////////////////////////////////////
 
-
-drag: function(start,drag,end,pre){
+drag: function(cbs){
 	// bind a drag event with callbacks for
 	// the start of the drag,
 	// during the drag,
-	// and after the drag is released
+	// after the drag is released,
+	// and a prebinding check for
+	// Ctrl-Shift presses and such
 
 	// NB:	javascript has drag events,
 	// 	but this should not properly 
@@ -22,43 +15,54 @@ drag: function(start,drag,end,pre){
 	//	because no data (image, text, files...)
 	//	is being dragged. 
 
-	// if any of the callbacks are null,
-	// make them null functions
-	if(start == null) start=function(){};
-	if(drag  == null)  drag=function(){};
-	if(end   == null)   end=function(){};
+	// cbs is an object containing
+	// from 0 to all of the callbacks
+	// available.
+	// Set the undefined to null functions.
+	if(cbs.start  == undefined) cbs.start =function(){};
+	if(cbs.during == undefined) cbs.during=function(){};
+	if(cbs. end   == undefined) cbs. end  =function(){};
 
 	// pre is an additional constraint for the
 	// drag, to be called before event propagation is stopped,
-	// like having the shift key held down or something
-	if(pre == null) pre=function(){return true;};
+	// like having the shift key held down or something.
+	// It defaults to true:
+	if(cbs.pre == undefined) cbs.pre=function(){return true;};
 
+	// remember is a function which determines
+	// what data from the original event will be stored
+	if(cbs.remember == undefined) cbs.remember=function(){};
+	
 	this.mousedown(function(e){
-		if(!pre(e)) return;
+		if(!cbs.pre(e)) return;
 		e.preventDefault();
 		e.stopPropagation();
-		start(e,{x:e.pageX,
-			 y:e.pageX});
-		this.dragStartX = e.pageX;
-		this.dragStartY = e.pageY;
+
+		cbs.start_data = cbs.remember(e);
+		cbs.start(e);
+
+		cbs.during(e);		
 	});//mousedown
 
 	this.mousemove(function(e){
-		if(!pre(e)) return;
-		// make sure the left mouse key is depressed
+		if(!cbs.pre(e)) return;
+		// also make sure the left mouse key is depressed
 		if(e.which != 1) return;
-		drag(e,	{x:this.dragStartX,
-			 y:this.dragStartY});
+
+		cbs.during(e);
 	});//mousemove
 
 	this.mouseup(function(e){
-		if(!pre(e)) return;
+		if(!cbs.pre(e)) return;
+		// pre is not checked-
+		// any mouseup at all
+		// will cause the end
+		// of the drag
 		e.preventDefault();
 		e.stopPropagation();
-		end(e,	{x:this.dragStartX,
-			 y:this.dragStartY});
-		$(this).removeAttr('dragStartX');
-		$(this).removeAttr('dragStartY');
+
+		cbs.end(e);
+		delete cbs.start_data;
 	});//mouseup
 
 	return this;

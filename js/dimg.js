@@ -13,58 +13,82 @@
                 freedom, each image will be
                 stored as $("div>img.dimg#dimg12")
                 or similar.
+
+
+I don't actually need the javascript
+shepherding object-
+	The elements only need their attrs
+	set appropriately (class, id, src, 
+	event bindings...) so if I want to
+	access them thereafter, I can just
+	use jQuery. 
+		Make dimg a function, not a class.
+	
 */
 
 var dimg = {c:0};
+dimg = function(src){
 
-dimg = function(){}
-
-//what is given to seed the image?
-// src?
-// $(..)?
-// id?
-dimg.create = function(src){
-
-  var d = new dimg();
-  d.imgID = "dimg_img_"+(dimg.c);
-  d.divID = "dimg_div_"+(dimg.c);
-  dimg.c++;
-
-  $("<img src="+src
-	+" id="+d.imgID
-	+" class=dimg_img />")
-  .wrap("<div id="+d.divID
-	+" class=dimg_div />")
+  $("<img />")
+  .attr({
+      id   :	"dimg_img_"+(dimg.c++),
+      src  :	src
+    })
+  .addClass("dimg_img")
+  .wrap("<div />")
   .parent()
+  .addClass("dimg_div")
   .css('overflow','hidden')
+  .drag({
+	  //Hold no buttons and drag
+      pre:function(e){return !e.shiftKey;},
+
+      remember:function(e){
+		return {
+			mouse:
+			{x:e.pageX,
+			 y:e.pageY,},
+			corner:
+			 $(e.currentTarget).offset(),};
+		},//remember
+
+      during:function(e){
+		//console.log(this);
+		// drag an image:
+		// corner_i-mouse_i == corner_f-mouse_f
+		// corner_f = corner_i+mouse_f-mouse_i
+		$(e.currentTarget)
+		.offset({top:(this.start_data.corner.top +e.pageY-this.start_data.mouse.y),
+				left:(this.start_data.corner.left+e.pageX-this.start_data.mouse.x)});
+		},//during
+
+  })//.drag
+  .drag({
+	  //Hold shift only and drag
+      pre:function(e){return e.shiftKey;},
+
+      remember:function(e){
+		return {
+			mouse:
+			{x:e.pageX,
+			 y:e.pageY,},
+			corner:
+			 $(e.currentTarget).offset(),};
+		},//remember
+
+      during:function(e){
+		//console.log(this);
+		// drag an image:
+		// corner_i-mouse_i == corner_f-mouse_f
+		// corner_f = corner_i+mouse_f-mouse_i
+		$(e.currentTarget)
+		.offset({top:(this.start_data.corner.top +e.pageY-this.start_data.mouse.y),
+				left:(this.start_data.corner.left+e.pageX-this.start_data.mouse.x)});
+		},//during
+
+  })//.drag
   .appendTo('body');
 
 
-  f = function(e,start){
-	console.log(e);  
-	$(e.currentTarget)
-		.offset(
-			// Do some paper work to figure
-			// out what this should be.
-			// It currently resets the image
-			// to 0,0 before dragging.
-			{top:(e.pageY-start.y),
-			left:(e.pageX-start.x)}
-			);}
-
-  d.div().drag(null,f,null,function(e){return e.shiftKey;});//drag
-
-  return d;	
 }
 
-dimg.prototype = {
-
-img: function(){return $('#'+this.imgID);},
-div: function(){return $('#'+this.divID);},
-
-
-
-
-}
-
-var d = dimg.create('images/airgear.jpg');
