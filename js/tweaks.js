@@ -30,7 +30,8 @@ drag: function(cbs){
 	if(cbs.pre == undefined) cbs.pre=function(){return true;};
 
 	// remember is a function which determines
-	// what data from the original event will be stored
+	// what data from the original event will be 
+	// available to the callbacks later, as cbs._
 	if(cbs.remember == undefined) cbs.remember=function(){};
 	
 	this.mousedown(function(e){
@@ -38,7 +39,7 @@ drag: function(cbs){
 		e.preventDefault();
 		e.stopPropagation();
 
-		cbs.start_data = cbs.remember(e);
+		cbs._ = cbs.remember(e);
 		cbs.start(e);
 
 		cbs.during(e);		
@@ -62,7 +63,7 @@ drag: function(cbs){
 		e.stopPropagation();
 
 		cbs.end(e);
-		delete cbs.start_data;
+		delete cbs._;
 	});//mouseup
 
 	return this;

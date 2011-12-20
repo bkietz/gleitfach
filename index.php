@@ -42,8 +42,9 @@
 			S-drag = move  the image
 			A-drag = scale the image
 			C-drag = crop  the image
-			???    = attach an anchor
+			???    = attach a label
 				 to the image
+			???    = rotate the image
 			...
 		To accomplish these degrees of
 		freedom, each image will be
