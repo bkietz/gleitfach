@@ -1,25 +1,38 @@
-
-var dimg = {c:0};
 dimg = function(src){
 
-  $("<img />")
-  .attr({
-//      id   :	"dimg_img_"+(dimg.c++),
-      src  :	src,
-//      height_0	: this.height(),
-//      width_0	: this.width(),
-    })
-  .addClass("dimg")
-  .wrap("<div />")
-  .parent()
-  .addClass("dimg")
-  .css({overflow:'hidden'})
 
-	//reset the dimg with a dblclick
+
+// First set the event bindings for the
+// new dimg, then (much later) give it 
+// markup properties. 
+var i = $("<img />")
+			.wrap("<div />")
+			.parent()
+
+
+	//double clicking will reset the dimg
   .dblclick(function(e){
-		$(this) .height('100%')
-				.width( '100%');
-	})//.dblclick
+	  var i = $(this).children();
+	  i .css({
+			top		:0,
+			left	:0,
+			height	:i.attr('height_0'),
+			width	:i.attr('width_0'),
+			})
+		.parent()
+		.css({
+			top		:0,
+			left	:0,
+			height	:i.attr('height_0'),
+			width	:i.attr('width_0'),
+			});
+
+		
+  })//dblclick
+
+
+
+
 
 	//re-position the dimg by
 	//holding down only shift 
@@ -36,6 +49,8 @@ dimg = function(src){
 		// m(ouse)  = mouse position
 		// c_i - m_i == c_f - m_f
 		// c_f = c_i + m_f - m_i
+		console.log(e.currentTarget);
+		
 		$(e.currentTarget)
 		.offset({top:(this._.corner.top +e.pageY-this._.mouse.y),
 				left:(this._.corner.left+e.pageX-this._.mouse.x)});
@@ -49,48 +64,37 @@ dimg = function(src){
 
   })//.drag
   
+
+
+
+
+	//does not work!
   
 	//scale the dimg by
 	//holding down shift
 	//whilst mousewheeling
   .bind('mousewheel',function(e){
-		if(!(e.shiftKey && !e.ctrlKey && !e.altKey)) return;
+		if(	e.shiftKey && !e.ctrlKey && !e.altKey
+			&& 	$(e.srcElement).hasClass('dimg')	);
+		else return;
 		e.preventDefault();
 		e.stopPropagation();
-		scale_factor = 1 - e.originalEvent.wheelDelta/3000;
-		var div = $(e.currentTarget);
-		var img = div.children();
+		var inc = '*='+(1+e.originalEvent.wheelDelta/1000);
 
-		// This will probably break on a cropped dimg
-		div .width(  scale_factor * div.width())
-			.height( scale_factor * div.height());
-		img .width(  scale_factor * img.width())
-			.height( scale_factor * img.height());
+		console.log(e);
+
+		$(e.currentTarget)	.width(inc).height(inc)
+			.children()		.width(inc).height(inc);
    })//.bind
-/*
-	//scale the dimg by
-	//holding down ctrl
-	//during a drag
-	//	The right edge will track with the mouse
-  .drag({
-      pre:function(e){return !e.shiftKey && e.ctrlKey && !e.altKey;},
 
-      during:function(e){
-		new_width = e.pageX - this._.corner.left;
-		$(e.currentTarget).children()
-		.width(  new_width )
-		.height( new_width/this._.aspect_ratio );
-		},//during
 
-      remember:function(e){
-		return {
-			aspect_ratio:$(e.currentTarget).children().width()/
-						 $(e.currentTarget).children().height(),
-			corner:	$(e.currentTarget).offset()	,
-		};},//remember
 
-  })//.drag
-*/
+
+
+
+
+//no matter what I do the damn new div is never on top!
+// it can't ever window the rest of the img!
 
 
 	//crop the dimg by
@@ -105,23 +109,20 @@ dimg = function(src){
 	    },//pre
 
       during:function(e){
-		console.log(		this._.new_width(e));
+//		console.log(		this._.new_width(e));
 
-		this._.target.parent()
-			.width (this._.new_width (e)	);
-		this._.target.parent()
+		this._.view
+			.width (this._.new_width (e)	)
 			.height(this._.new_height(e)	);
 
-		this._.target.parent().parent()
-			.width (this._.new_width (e) + 50);
-		this._.target.parent().parent()
-			.height(this._.new_height(e) + 50);
+//		this._.target.parent()
+//			.width (this._.new_width (e) + 50)
+//			.height(this._.new_height(e) + 50);
 		},//during
 
       remember:function(e){
 		return {
 			new_width :function(e){
-						console.log(this);
 						return	Math.min
 							(e.pageX, this.target.width()	)
 							-this.target.parent().offset().left;
@@ -135,22 +136,95 @@ dimg = function(src){
 		};},//remember
 
 	  start:function(e){
-		this._.target.wrap('<div style="overflow:hidden"/>');
+		var i = this._.target;
+		i.parent()
+			.height( i.attr('height_0'))
+			.width(  i.attr('width_0'))
+			.css('border','5px solid black');
+			
+		this._.view = $('<div/>')
+							.css({
+								overflow:'hidden',
+								border:'5px solid blue',
+								})
+							.appendTo('body');
 	  },//start
 	  end:function(e){
 		this._.target.parent().parent()
-			.width (this._.new_width (e));
-		this._.target.parent().parent()
+			.width (this._.new_width (e))
 			.height(this._.new_height(e));
-
-		this._.target.unwrap();
+			
+		this._.view.remove();
 	  },//end
 
   })//.drag
+  
+  
+  
+  
+  
+  .appendTo('body')
+  .children();//finish pointing at the <img>
 
 
 
-// and finally, put it onto the page
-  .appendTo('body');
+
+
+
+
+
+// Markup properties:
+i .attr({src:src})
+  .attr({
+      height_0	: i.height(),
+      width_0	: i.width(),
+    })
+  .addClass("dimg")
+  .css({
+	  left		: 0,
+	  top		: 0,
+	  position	: 'absolute',
+	  })
+  
+  .parent()
+  .addClass("dimg")
+  .css({
+	  top		: 0,
+	  left		: 0,
+	  height	: i.height(),
+	  width		: i.width(),
+	  position	: 'absolute',
+	  overflow	: 'hidden',
+	  });
+
+
+return i;
 }
+
+
+
+
+// a little fn to get an
+// image file's dimensions
+imgSRCdimensions = function(s){
+var i = $('<img src="'+s+'" />').appendTo('body');
+var ret = {height:i.height(),width:i.width()};
+i.remove();
+return ret;
+};//imgSRCdimensions
+/*
+// Possible alternate route:
+$('body').append('<svg version = "1.1">'+
+'<g clip-path="url(#viewPort)" id="popAroundMenuG">'+
+'<image width='+dim.width+
+     ' height='+dim.height+
+     ' xlink:href="'+'images/airgear.jpg'+
+'"></g>'+
+'<clipPath id="viewPort">'+
+'<rect x="130" y="75" width="90" height="40"></rect>'+
+'</clipPath>'+
+'</svg>');
+*/
+
+
 
