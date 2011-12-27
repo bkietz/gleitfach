@@ -11,70 +11,106 @@ resizeByCorners: function(newCorners){
 
 
 drag: function(cbs){
-	// bind a drag event with callbacks for
-	// the start of the drag,
-	// during the drag,
-	// after the drag is released,
-	// and a prebinding check for
-	// Ctrl-Shift presses and such
-
-	// NB:	javascript has drag events,
-	// 	but this should not properly 
-	//	be considered one of them 
-	//	because no data (image, text, files...)
-	//	is being dragged. 
-
-	// cbs is an object containing
-	// from 0 to all of the callbacks
-	// available.
-	// Set the undefined to null functions.
-	if(cbs.start  == undefined) cbs.start =function(){};
-	if(cbs.during == undefined) cbs.during=function(){};
-	if(cbs. end   == undefined) cbs. end  =function(){};
-
-	// pre is an additional constraint for the
-	// drag, to be called before event propagation is stopped,
-	// like having the shift key held down or something.
-	// It defaults to true:
-	if(cbs.pre == undefined) cbs.pre=function(){return true;};
-
-	// remember is a function which determines
-	// what data from the original event will be 
-	// available to the callbacks later, as cbs._
-	if(cbs.remember == undefined) cbs.remember=function(){};
+/*******************************
+ * bind a drag event with callbacks for
+ * the start of the drag,
+ * during the drag,
+ * after the drag is released,
+ * and user defined checks for the
+ * beginning and end of the drag
+ * (Ctrl-Shift presses and such)
+ * 
+ * NB:	javascript has drag events,
+ * but this should not properly 
+ * be considered one of them 
+ * because no data (image, text, files...)
+ * is being dragged. 
+ *******************************/
+	// cbs is an object containing callbacks
 	
+	// should these be undefined,
+	// set them to null functions
+	if(cbs.pre    == undefined) cbs.pre   =function(){};
+	if(cbs.intra  == undefined) cbs.intra =function(){};
+	if(cbs.post   == undefined) cbs.post  =function(){};
+
+	// start is a set of additional constraints for the
+	// drag. All must be met to start the drag.
+	// mousedown, on the right element, shift key pressed...(AND)
+	if(cbs.start == undefined) cbs.start = [];
+	
+	// term is a set of additional conditions for ending
+	// the drag. If any of the conditions are met, the drag will end.
+	// mouseup, off the element, shift key released...(OR)
+	if(cbs.term   == undefined) cbs.term = [];
+
+
+
 	this.mousedown(function(e){
-		if(!cbs.pre(e)) return;
-		e.preventDefault();
-		e.stopPropagation();
-
-		cbs._ = cbs.remember(e);
-		cbs.start(e);
-
-		cbs.during(e);		
-	});//mousedown
-
-	this.mousemove(function(e){
-		if(!cbs.pre(e)) return;
-		// also make sure the left mouse key is depressed
+		// mousedown triggers a check
+		// for dragging:
+		// is the left mouse button clicked?
+		// are _all_ the other start conditions met?
 		if(e.which != 1) return;
+		for(var i in cbs.start)
+			if(!cbs.start[i](e)) return;
 
-		cbs.during(e);
-	});//mousemove
+		//////////////
+		// INTRA-DRAG
+		//////////////
+			// Stop default event effects
+			e.preventDefault();
+			e.stopPropagation();
 
-	this.mouseup(function(e){
-		if(!cbs.pre(e)) return;
-		// pre is not checked-
-		// any mouseup at all
-		// will cause the end
-		// of the drag
-		e.preventDefault();
-		e.stopPropagation();
+			// initialize cbs._
+			// (storage member)
+			cbs._ = {};
+		
+			// pre-drag callback
+			cbs.pre(e);
+		
+		//////////////
+		// POST-DRAG
+		//////////////
+		$(document).bind('mouseup.kietzDragTweak',function(e){
+			// Stop default event effects
+			e.preventDefault();
+			e.stopPropagation();
+			
+			// post-drag callback
+			cbs.post(e);
+				
+			// at drag end, unbind 
+			// intra from mousemove
+			// and delete cbs._ 
+			delete cbs._;
+			$(document).unbind('.kietzDragTweak');
+			});//mouseup
 
-		cbs.end(e);
-		delete cbs._;
-	});//mouseup
-
+		//////////////
+		// INTRA-DRAG
+		//////////////
+		$(document).bind('mousemove.kietzDragTweak',function(e){
+			// Stop default event effects
+			e.preventDefault();
+			e.stopPropagation();
+			
+			// intra-drag callback
+			cbs.intra(e);
+			
+			// check for drag ending:
+			// releasing the left mouse button would 
+			// have triggered a mouseup, so we don't
+			// need to worry about it.
+			// is _any_ of the other end conditions met?
+			for(var i in cbs.term)
+				if(!cbs.term[i](e))
+					$(document).trigger('mouseup');
+			});//mousemove
+			
+			
+			
+		});//mousedown
 	return this;
 },//drag
 
