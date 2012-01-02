@@ -1,13 +1,97 @@
 $.extend($.prototype,{
 
-resizeByCorners: function(newCorners){
-    this.offset({
-         left :newCorners.UL.x,
-         top  :newCorners.UL.y,
-         })
-         .width (newCorners.BR.x - newCorners.UL.x)
-         .height(newCorners.BR.y - newCorners.UL.y);
-},//resizeByCorners
+corners: function(targetCorner, setValue, oppositeSetValue){
+	/*********************
+	 * $('').corners() gets/sets the positions
+	 *  of the queried element's corners/center.
+	 * 
+	 * corners are indicated with two characters,
+	 * the first denoting vertical and the second
+	 * horizontal position: 'TL' = top left, etc.
+	 * 
+	 * If a corner alone is specified, corners()
+	 * returns the position of that corner 
+	 * formatted: {x:304,y:345}
+	 * 
+	 * If a corner is specified with two positions,
+	 * the element is positioned and resized such
+	 * that the specified corner is placed at the 
+	 * first position, and the corner opposite it
+	 * at the second.
+	 * 
+	 * If no arguments are provided, all corners'
+	 * positions are returned in a single object.
+	 * 
+	 * If only one position is given, the opposite
+	 * corner is held constant.
+	 * 
+	 ***********************/
+
+	// no arguments:
+	if(targetCorner == undefined)
+			return {TL:this.corners('TL'),
+					TR:this.corners('TR'),
+					BL:this.corners('BL'),
+					BR:this.corners('BR'),
+				center:this.corners('center')};
+
+
+	// targetCorner only:
+	if(setValue == null) {
+	var ret = {};
+	
+	if(targetCorner[0] == 'T')
+		ret.y = this.offset().top;
+	else
+		ret.y = this.offset().top + this.height();
+		
+	if(targetCorner[1] == 'L')
+		ret.x = this.offset().left;
+	else 
+		ret.x = this.offset().left + this.width();
+		
+	if(targetCorner == 'center')
+		ret = {	x:this.offset().left + parseInt(this.width() /2) ,
+				y:this.offset().top  + parseInt(this.height()/2) };
+				
+	return ret;
+	}//	if(setValue == null)
+
+
+
+
+	var newCSS = {};
+	
+	if(targetCorner[0] == 'T'){
+		newCSS.height = this.offset().top - setValue.y + this.height();
+		newCSS.top 	  = setValue.y;
+	} else {
+		newCSS.height = setValue.y - this.offset().top;
+	}//vertical
+
+	if(targetCorner[1] == 'L'){
+		newCSS.width = this.offset().left - setValue.x + this.width();
+		newCSS.left  = setValue.x;
+	} else {
+		newCSS.width = setValue.x - this.offset().left;
+	}//horizontal
+
+	this.css(newCSS);
+	
+	if(oppositeSetValue != undefined)
+		this.corners(
+			(targetCorner[0] == 'T'?'B':'T')+
+			(targetCorner[1] == 'L'?'R':'L'),
+		
+			oppositeSetValue);
+	
+	return this;
+},//corners
+
+
+
+
+
 
 
 drag: function(cbs){
@@ -31,86 +115,106 @@ drag: function(cbs){
 	// should these be undefined,
 	// set them to null functions
 	if(cbs.pre    == undefined) cbs.pre   =function(){};
-	if(cbs.intra  == undefined) cbs.intra =function(){};
+	if(cbs.inter  == undefined) cbs.inter =function(){};
 	if(cbs.post   == undefined) cbs.post  =function(){};
 
-	// start is a set of additional constraints for the
+	// storage member and a
+	// jQuery to this element
+	cbs._ = {};
+	cbs.$ = this;
+
+	// viv() is a set of additional constraints for the
 	// drag. All must be met to start the drag.
 	// mousedown, on the right element, shift key pressed...(AND)
-	if(cbs.start == undefined) cbs.start = [];
+	if(cbs.viv  == undefined) cbs.viv  = [];
 	
-	// term is a set of additional conditions for ending
+	// mort() is a set of additional conditions for ending
 	// the drag. If any of the conditions are met, the drag will end.
 	// mouseup, off the element, shift key released...(OR)
-	if(cbs.term   == undefined) cbs.term = [];
+	if(cbs.mort == undefined) cbs.mort = [];
+/*		
+	//alternative default mort:
+		{
+		cbs.mort = [];
+		for(var i in cbs.viv)
+			cbs.mort[i] = function(e){
+				return !viv[i].call(cbs.$,e,cbs);
+				};//cbs.mort
+			};//if
+*/
 
-
-
-	this.mousedown(function(e){
-		// mousedown triggers a check
-		// for dragging:
+	cbs.radix = function(e){
+		// radix() is to be called at
+		// each mousedown- it triggers 
+		// a check for dragging.
+		
 		// is the left mouse button clicked?
 		// are _all_ the other start conditions met?
 		if(e.which != 1) return;
-		for(var i in cbs.start)
-			if(!cbs.start[i](e)) return;
+		for(var i in cbs.viv)
+			if(  !cbs.viv[i].call(cbs.$,e,cbs)  )	return;
 
 		//////////////
-		// INTRA-DRAG
+		// PRE-DRAG
 		//////////////
 			// Stop default event effects
 			e.preventDefault();
 			e.stopPropagation();
-
-			// initialize cbs._
-			// (storage member)
-			cbs._ = {};
 		
 			// pre-drag callback
-			cbs.pre(e);
+			cbs.pre.call(cbs.$,e,cbs);
 		
 		//////////////
 		// POST-DRAG
 		//////////////
-		$(document).bind('mouseup.kietzDragTweak',function(e){
+		cbs.mouseup = function(e){
 			// Stop default event effects
 			e.preventDefault();
 			e.stopPropagation();
 			
 			// post-drag callback
-			cbs.post(e);
-				
+			cbs.post.call(cbs.$,e,cbs);
+			
 			// at drag end, unbind 
-			// intra from mousemove
-			// and delete cbs._ 
-			delete cbs._;
-			$(document).unbind('.kietzDragTweak');
-			});//mouseup
+			// mousemove and mouseup
+			$(document).unbind('mousemove',	cbs.mousemove);
+			$(document).unbind('mouseup',	cbs.mouseup);
+
+			// empty cbs._
+			cbs._ = {};
+
+			};	$(document).mouseup(cbs.mouseup);
 
 		//////////////
-		// INTRA-DRAG
+		// INTER-DRAG
 		//////////////
-		$(document).bind('mousemove.kietzDragTweak',function(e){
+		cbs.mousemove = function(e){
 			// Stop default event effects
 			e.preventDefault();
 			e.stopPropagation();
 			
-			// intra-drag callback
-			cbs.intra(e);
+			// inter-drag callback
+			cbs.inter.call(cbs.$,e,cbs);
 			
 			// check for drag ending:
 			// releasing the left mouse button would 
 			// have triggered a mouseup, so we don't
 			// need to worry about it.
 			// is _any_ of the other end conditions met?
-			for(var i in cbs.term)
-				if(!cbs.term[i](e))
+			for(var i in cbs.mort)
+				if(  cbs.mort[i].call(cbs.$,e,cbs)  )
 					$(document).trigger('mouseup');
-			});//mousemove
+					
+			};	$(document).mousemove(cbs.mousemove);
 			
-			
-			
-		});//mousedown
+
+		};//cbs.radix	
+
+
+	// radix() is the only static binding, 
+	// so to fully unbind the drag:
+	// $('div#dimg').unbind('mousedown',externalRadixHandle)
+	this.mousedown(cbs.radix);//mousedown
 	return this;
 },//drag
 

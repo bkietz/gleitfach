@@ -55,31 +55,28 @@ var d=$("<div />")
  * during a drag
  * 	The image will track with the mouse
  *****************************/
-  .drag({
-      start:[
+  .drag({	  
+      viv:[
 		function(e){return  e.shiftKey},
 		function(e){return !e.ctrlKey},
 		function(e){return !e.altKey}
-		],//start
+		],//viv
 
-	  pre:function(e){
-		this._ = {
-		    mouse:	{x:e.pageX,	y:e.pageY,},
-			corner:	$(e.target).offset(),
-			};
-		},//pre
-
-      intra:function(e){
+	  pre:function(e,c){
 		// c(orner) = upper right corner of the image
 		// m(ouse)  = mouse position
-		// c_i - m_i == c_f - m_f
-		// c_f = c_i + m_f - m_i
-		
-		$(e.target).offset({
-			top: (this._.corner.top  + e.pageY-this._.mouse.y),
-			left:(this._.corner.left + e.pageX-this._.mouse.x)
+		c._ = {
+		    mouse:	{x:e.pageX,	y:e.pageY,},
+			corner:	this.offset(),
+			};//c._
+		},//pre
+
+      inter:function(e,c){
+		this.offset({
+			top: (c._.corner.top  + e.pageY-c._.mouse.y),
+			left:(c._.corner.left + e.pageX-c._.mouse.x)
 			});//offset
-		},//intra
+		},//inter
 
   })//.drag
 
@@ -93,64 +90,37 @@ var d=$("<div />")
  * 		The lower right corner will track with the mouse
  *****************************/
   .drag({
-      start:[
+      viv:[
 		function(e){return !e.shiftKey},
 		function(e){return  e.ctrlKey},
 		function(e){return !e.altKey}
-		],//start
+		],//viv
 
-	  pre:function(e){
-		var t = $(e.target);
-		this._ = {
-		    quadrant:{
-		    	h:	t.offset().left + t.width()/2 < e.pageX,
-				v:	t.offset().top + t.height()/2 < e.pageY,
-					},//quadrant
-		    target:		t,
-		    width_0:	t.width(),
-		    height_0:	t.height(),
-		    left_0:		t.offset().left,
-		    top_0:		t.offset().top,
-			};//this._
+	  pre:function(e,c){
+		c._ = {
+		    quadrant:	(e.pageY < this.corners('center').y? 'T':'B')+
+						(e.pageX < this.corners('center').x? 'L':'R'),
+			crop: {	x:parseInt(this.css('background-position-x')),
+					y:parseInt(this.css('background-position-y'))	},
+			};//c._
+		c._.corner = this.corners(c._.quadrant);
 		},//pre
 
-      intra:function(e){
-		var t = this._.target;
 
-		if(this._.quadrant.h)
-			// the drag started right
-			// of the dimg's center
-			t.css({
-				width:	e.pageX - t.offset().left,
-//				'background-position':' 0 ',
-				});
-		else
-			t.css({
-				left:	e.pageX,
-				width:	this._.width_0 - e.pageX + this._.left_0,
-//				'background-position':(- e.pageX + this._.left_0)+' ',
-				});
+	  inter:function(e,c){
+		this.corners(c._.quadrant,{x:e.pageX,y:e.pageY});
+
+		if(c._.quadrant[0] == 'T')
+			this.css('background-position-y',
+				c._.corner.y - e.pageY + c._.crop.y);
 		
-		if(this._.quadrant.v)
-			// the drag started below
-			// the dimg's center
-			t.css({
-				height:	e.pageY - t.offset().top,
-//				'background-position':t.css('background-position')+' 0 ',
-				});
-		else
-			t.css({
-				top:	e.pageY,
-				height:	this._.height_0 - e.pageY + this._.top_0,
-//				'background-position':t.css('background-position')+(- e.pageY + this._.top_0)
-				});
-			
-		},//intra
+		if(c._.quadrant[1] == 'L')
+			this.css('background-position-x',
+				c._.corner.x - e.pageX + c._.crop.x);
+		},//inter
 
   })//.drag
   
-
-
 
 
 
@@ -180,7 +150,7 @@ d .addClass("dimg")
 
 	'background-image'		:'url(images/airgear.jpg)',
 	'background-position'	:'0 0',
-    'background-size'		: srcDimensions.width+' '+srcDimensions.height
+    'background-size'		: srcDimensions.width+' '+srcDimensions.height,
 	});//css
 
 // This method is chainable-
