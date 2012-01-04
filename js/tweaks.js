@@ -121,7 +121,7 @@ drag: function(cbs){
 	// storage member and a
 	// jQuery to this element
 	cbs._ = {};
-	cbs.$ = this;
+	cbs.$ = this.selector;
 
 	// viv() is a set of additional constraints for the
 	// drag. All must be met to start the drag.
@@ -132,16 +132,8 @@ drag: function(cbs){
 	// the drag. If any of the conditions are met, the drag will end.
 	// mouseup, off the element, shift key released...(OR)
 	if(cbs.mort == undefined) cbs.mort = [];
-/*		
-	//alternative default mort:
-		{
-		cbs.mort = [];
-		for(var i in cbs.viv)
-			cbs.mort[i] = function(e){
-				return !viv[i].call(cbs.$,e,cbs);
-				};//cbs.mort
-			};//if
-*/
+	
+	
 
 	cbs.radix = function(e){
 		// radix() is to be called at
@@ -152,7 +144,7 @@ drag: function(cbs){
 		// are _all_ the other start conditions met?
 		if(e.which != 1) return;
 		for(var i in cbs.viv)
-			if(  !cbs.viv[i].call(cbs.$,e,cbs)  )	return;
+			if(  !cbs.viv[i].call($(cbs.$),e,cbs)  )	return;
 
 		//////////////
 		// PRE-DRAG
@@ -162,7 +154,7 @@ drag: function(cbs){
 			e.stopPropagation();
 		
 			// pre-drag callback
-			cbs.pre.call(cbs.$,e,cbs);
+			cbs.pre.call($(cbs.$),e,cbs);
 		
 		//////////////
 		// POST-DRAG
@@ -173,17 +165,16 @@ drag: function(cbs){
 			e.stopPropagation();
 			
 			// post-drag callback
-			cbs.post.call(cbs.$,e,cbs);
+			cbs.post.call($(cbs.$),e,cbs);
 			
 			// at drag end, unbind 
 			// mousemove and mouseup
-			$(document).unbind('mousemove',	cbs.mousemove);
-			$(document).unbind('mouseup',	cbs.mouseup);
+			$(document).off('mousemove',	cbs.mousemove);
 
 			// empty cbs._
 			cbs._ = {};
 
-			};	$(document).mouseup(cbs.mouseup);
+			};	$(document).one('mouseup',	cbs.mouseup);
 
 		//////////////
 		// INTER-DRAG
@@ -194,7 +185,7 @@ drag: function(cbs){
 			e.stopPropagation();
 			
 			// inter-drag callback
-			cbs.inter.call(cbs.$,e,cbs);
+			cbs.inter.call($(cbs.$),e,cbs);
 			
 			// check for drag ending:
 			// releasing the left mouse button would 
@@ -202,21 +193,24 @@ drag: function(cbs){
 			// need to worry about it.
 			// is _any_ of the other end conditions met?
 			for(var i in cbs.mort)
-				if(  cbs.mort[i].call(cbs.$,e,cbs)  )
+				if(  cbs.mort[i].call($(cbs.$),e,cbs)  )
 					$(document).trigger('mouseup');
 					
-			};	$(document).mousemove(cbs.mousemove);
-			
+			};	$(document).on('mousemove',	cbs.mousemove);
 
 		};//cbs.radix	
 
+	// need to make radix a member of an object, so it can be 
+	// retrieved via reference without naming the whole object
 
 	// radix() is the only static binding, 
 	// so to fully unbind the drag:
-	// $('div#dimg').unbind('mousedown',externalRadixHandle)
-	this.mousedown(cbs.radix);//mousedown
+	// $(document).off('mousedown',externalRadixHandle)
+	$(document).on('mousedown',this.selector,cbs.radix);//mousedown
 	return this;
 },//drag
+
+
 
 
 dragAndDrop: function(dropCallback){
@@ -242,6 +236,8 @@ dragAndDrop: function(dropCallback){
 },//dragAndDrop
 
 
+
+
 serializeRequest: function(){
 	// serialize a <form> to the format 
 	// of $.post()'s "data" argument
@@ -256,9 +252,11 @@ serializeRequest: function(){
 
 
 $.paramsPOST = function(O,accumulator,path){
-	// Flatten an arbitrary object for $.post 
-	// PHP's $_POST variable will have the same structure:
-	/*	
+	/***************************
+	 * Flatten an arbitrary object for $.post
+	 * PHP's $_POST variable will have 
+	 * the same structure:
+	 
 	JavaScript:
 	///////////
 	var a = paramsPOST({	"w1":"hello",
@@ -269,7 +267,7 @@ $.paramsPOST = function(O,accumulator,path){
 	////////////
 	array(	"w1"=>"hello",
 		"w2"=>array("world","punc")  );
-	*/
+	****************************/
 
 	// if necessary, initialize the accumulator
 	if(accumulator==null) var accumulator = new Object();

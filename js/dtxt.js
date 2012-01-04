@@ -1,48 +1,36 @@
-dimg = {
+dtxt = function(src){
 
-
+var d=$("<div />")
 /*****************************
- * dimg defines a class of DOM element
- * with event bindings for basic
- * mouse interaction with an image:
+ * BEGIN CALLBACKS
  * 
- * 		S-drag = move  the image
- * 		A-drag = scale the image
- * 		C-drag = crop  the image
- * 		???    = attach a label
- * 				 to the image
- *		???    = rotate the image
+ * First set event bindings for
+ * the dtxt in one long chain. 
+ * Then (much later) set its
+ * markup properties. 
  * 
+ * The dtxt has several features
+ * ...
  * 
- * The dimg is implemented as a 
- * <div/> with a background image
  ****************************/
 
 
-count:0,
-init:function(){
-		
-$('div.dimg.active_dimg')
 
-/*****************************
- * double clicking will reset the dimg
- *****************************/
-.on('dblclick',
-function(e){
-	  $(this).css({
-			top:	0,
-			left:	0,
-			height:	d.attr('height_0'),
-			width:	d.attr('width_0'),
-			'background-position':'0 0'
-			});
-  })//dblclick
-
+/****************************
+ * focus to the dtxt, pointing
+ * tinyMCE at it
+ ****************************/
+ .mouseover()
+ 
+/****************************
+ * unfocus unpoint tinyMCE
+ ****************************/
+ .mouseoff()
 
 
 
 /*****************************
- * re-position the dimg by
+ * re-position the dtxt by
  * holding down only shift 
  * during a drag
  * 	The image will track with the mouse
@@ -70,7 +58,7 @@ function(e){
 			});//offset
 		},//inter
 
-  })//S-drag
+  })//.drag
 
 
 
@@ -111,21 +99,16 @@ function(e){
 				c._.corner.x - e.pageX + c._.crop.x);
 		},//inter
 
-  });//C-drag
+  })//.drag
   
 
-},//dimg.init
-	
 
 
-
-src: function(src){
-	
-// if it has not already been done,
-// bind the dimg events to class dimg
-if(this.count ++ == 0) this.init();
-
-//count is unnecessary, really. Obsolete it
+  .appendTo('body');
+/************************
+ * END CALLBACKS
+ * BEGIN MARKUP PROPERTIES
+ ************************/
 
 
 // find the dimensions of the image @ src
@@ -133,14 +116,7 @@ var i = $('<img src="'+src+'" />').appendTo('body');
 var srcDimensions = {height:i.height(),width:i.width()};
 i.remove();
 
-/*****************************
- *  This method is chainable-
- *  it returns a jQuery to the
- *  fresh dimg:
- *****************************/
-return $("<div />")
-  .appendTo('body')
-  .addClass('dimg').addClass('active_dimg')
+d .addClass("dimg")
   .attr({
       height_0	: srcDimensions.height,
       width_0	: srcDimensions.width,
@@ -157,10 +133,13 @@ return $("<div />")
     'background-size'		: srcDimensions.width+' '+srcDimensions.height,
 	});//css
 
-
-},//dimg.src()
-
-};//dimg
+/*****************************
+ *  This method is chainable-
+ *  it returns a jQuery to the
+ *  fresh dimg:
+ *****************************/
+return d;
+}
 
 
 
