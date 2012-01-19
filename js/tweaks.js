@@ -118,8 +118,8 @@ drag: function(cbs){
 	if(cbs.inter  == undefined) cbs.inter =function(){};
 	if(cbs.post   == undefined) cbs.post  =function(){};
 
-	// storage member and a
-	// jQuery to this element
+	// storage member and the
+	// input jQuery selector
 	cbs._ = {};
 	cbs.$ = this.selector;
 
@@ -134,9 +134,9 @@ drag: function(cbs){
 	if(cbs.mort == undefined) cbs.mort = [];
 	
 	
-
-	cbs.radix = function(e){
-		// radix() is to be called at
+	if(cbs.radix == undefined) cbs.radix = {};
+	cbs.radix.fn = function(e){
+		// radix.fn() is to be called at
 		// each mousedown- it triggers 
 		// a check for dragging.
 		
@@ -146,9 +146,9 @@ drag: function(cbs){
 		for(var i in cbs.viv)
 			if(  !cbs.viv[i].call($(cbs.$),e,cbs)  )	return;
 
-		//////////////
-		// PRE-DRAG
-		//////////////
+		/*************
+		 * PRE-DRAG
+		 *************/
 			// Stop default event effects
 			e.preventDefault();
 			e.stopPropagation();
@@ -156,9 +156,9 @@ drag: function(cbs){
 			// pre-drag callback
 			cbs.pre.call($(cbs.$),e,cbs);
 		
-		//////////////
-		// POST-DRAG
-		//////////////
+		/*************
+		 * POST-DRAG
+		 *************/
 		cbs.mouseup = function(e){
 			// Stop default event effects
 			e.preventDefault();
@@ -176,9 +176,9 @@ drag: function(cbs){
 
 			};	$(document).one('mouseup',	cbs.mouseup);
 
-		//////////////
-		// INTER-DRAG
-		//////////////
+		/*************
+		 * INTER-DRAG
+		 *************/
 		cbs.mousemove = function(e){
 			// Stop default event effects
 			e.preventDefault();
@@ -188,9 +188,9 @@ drag: function(cbs){
 			cbs.inter.call($(cbs.$),e,cbs);
 			
 			// check for drag ending:
-			// releasing the left mouse button would 
-			// have triggered a mouseup, so we don't
-			// need to worry about it.
+			/**	(we don't need to check for
+				mouseup here- that's already 
+				bound above)	**/
 			// is _any_ of the other end conditions met?
 			for(var i in cbs.mort)
 				if(  cbs.mort[i].call($(cbs.$),e,cbs)  )
@@ -198,15 +198,13 @@ drag: function(cbs){
 					
 			};	$(document).on('mousemove',	cbs.mousemove);
 
-		};//cbs.radix	
+		};//cbs.radix.fn
 
-	// need to make radix a member of an object, so it can be 
-	// retrieved via reference without naming the whole object
 
-	// radix() is the only static binding, 
-	// so to fully unbind the drag:
-	// $(document).off('mousedown',externalRadixHandle)
-	$(document).on('mousedown',this.selector,cbs.radix);//mousedown
+	/**	radix.fn() is the only static binding, 
+		so to fully unbind the drag:
+		$(document).off('mousedown',externalRadixHandle.fn)	**/
+	$(document).on('mousedown',this.selector,cbs.radix.fn);//mousedown
 	return this;
 },//drag
 
@@ -214,25 +212,32 @@ drag: function(cbs){
 
 
 dragAndDrop: function(dropCallback){
-	// bind a drag-and-drop event
-	// with a callback for the drop
+	/*****************************
+	 * bind a drag-and-drop event
+	 * with a callback for the drop
+	 * 
+	 * NB:	this *is* a proper drag event-
+	 * 		it will not trigger unless some
+	 * 		data is being dragged
+	 * 		(Ex: files from a file browser)
+	 *****************************/
+	return $(document).on({
+		
+		dragover:
+		function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+		},//dragover
 
-	// NB:	this *is* a proper drag event-
-	//	it will not trigger unless some
-	//	data is being dragged
-	//	(Ex: files from a file browser)
-	this.bind('dragover',function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-		});//bind('dragover'
+		drop:
+		function(e) {
+			e.stopPropagation();
+			e.preventDefault();
 
-	this.bind('drop',function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-
-		dropCallback(e);
-		});//bind('drop'
-	return this;
+			dropCallback(e);
+		},//drop
+		
+	},	this.selector);//on
 },//dragAndDrop
 
 
@@ -257,14 +262,14 @@ $.paramsPOST = function(O,accumulator,path){
 	 * PHP's $_POST variable will have 
 	 * the same structure:
 	 
-	JavaScript:
-	///////////
+	//JavaScript:
+	/////////////
 	var a = paramsPOST({	"w1":"hello",
 				"w2":["world","!"]   });
 		$.post("whatev.php",a);
 
-	PHP $_POST:
-	////////////
+	//PHP $_POST:
+	/////////////
 	array(	"w1"=>"hello",
 		"w2"=>array("world","punc")  );
 	****************************/
@@ -378,20 +383,46 @@ generatePopAroundMenu = function(e,entries){
 		angle_i = angle_f + angle_margin;
 	};//for
 
-/*	var angle = 0;
-	$('<div id="popAroundMenuRoot" />').appendTo('body').offset({top:100,left:100});
-	for(var i in entries) {
-		entries[i].label
-			.appendTo('div#popAroundMenuRoot')
-			.css({
-				'position'                 :'absolute',
-				'-webkit-transform'        :'rotate('+angle+'deg)',
-				'-webkit-transform-origin' :'0 0',
-			})//css
-			.click(entries[i].callback)
-			.click(function(e){$('div#popAroundMenuRoot').remove();});
+/**	
+ * var menuEntry1 = {
+angle:    60,
+label:    $('<p id="1" />').text('testing 1 testing 1 testing 1'),
+callback: function(e){
+    console.log(e);
+    return;
+}};
+var menuEntry2 = {
+angle:    60,
+label:    $('<p id="2" />').text('testing 2 testing 2 testing 2'),
+callback: function(e){
+    console.log(e);
+    return;
+}};
 
-		angle += entries[i].angle;
-		};//for
-*/
+popAroundMenuGenerator = function (menuEntries){
+   var angle = 0;
+   $('<div id="popAroundMenuRoot" />').appendTo('body').offset({top:100,left:100});
+   for(var i in menuEntries) {
+       menuEntries[i].label
+         .appendTo('div#popAroundMenuRoot')
+         .css({
+             'position'                 :'absolute',
+             '-webkit-transform'        :'rotate('+angle+'deg)',
+             '-webkit-transform-origin' :'0 0',
+             })//css
+         .click(menuEntries[i].callback)
+         .click(function(e){$('div#popAroundMenuRoot').remove();});
+
+        angle += menuEntries[i].angle;
+        };//for
+};
+
+popAroundMenuGenerator([menuEntry1,menuEntry2]);
+
+
+
+
+<object data="circle1.svg" type="image/svg+xml"></object>
+
+**/
 }//generatePopAroundMenu

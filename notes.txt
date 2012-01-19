@@ -1,0 +1,21 @@
+The logger is essentially a wysiwyg html editor, with a system for searching/rendering the results.
+Most of the editor's pieces were already there, and what wasn't I have coded.
+The editor, now that it's compiled, can be used for many things.
+Make it instance-able and put it into deb, github etc.
+	(In short, canibalize it for a different project- call it traum or something.)
+Code the logger using traum- it will be easy.
+
+
+I could perhaps just extend javascript to contain some of the methods I want (like perspective...)
+	http://uselessbyte.blogspot.com/2009/12/adding-custom-javascript-bindings-to.html
+	https://lists.webkit.org/pipermail/webkit-dev/2009-January/006417.html
+
+
+cdf kicks ass. It's mathematica, just mark-up instead of wysiwyg
+        ... except I gotta figure out how to edit one without mathematica.
+	It would be excellent to incorporate CDF into the logger somehow.
+
+
+
+
+
