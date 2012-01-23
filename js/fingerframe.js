@@ -10,7 +10,7 @@ fingerframe = {};
  * The fingerframe has subclasses
  * for allowing an img within 
  * to be cropped/scaled/rotated/etc.
- * for allowing tinyMCE instantiation
+ * for allowing nicEdit instantiation
  * for a canvas painter or flash video...
  * 
  * This should possibly, in the future, 
@@ -20,21 +20,17 @@ fingerframe = {};
 
 fingerframe.init = function(){
 
-//load tinyMCE first
-tinyMCE.init({ 
-	theme : "advanced",
-
-	theme_advanced_buttons3_add : "nonbreaking",
-	nonbreaking_force_tab : true,
-	plugins : "nonbreaking",
-
-	mode    : "none"
-  });
+/*****************************
+ * double clicking will reset the fingerframe
+ *****************************/
+fingerframe.nicEditManager = new nicEditor();	
+fingerframe.nicEditManager.setPanel('nicEditPanel');
 
 
 /*****************************
  * double clicking will reset the fingerframe
  *****************************/
+/*
 $(document).on('dblclick','div.fingerframe',
 function(e){
 	  $(this).css({
@@ -44,8 +40,8 @@ function(e){
 			width:	$(this).attr('width_0'),
 			'background-position':'0 0'
 			});
-  })//dblclick
-
+  });//dblclick
+*/
 
 
 $('div.fingerframe')
@@ -146,53 +142,8 @@ $('div.fingerframe')
 
   });//C-drag
   
-  
-  
-  
-  
-  
-/***************************
- * Now implement the TEXT functionality
- * (so that tinyMCE can be instantiated) 
- ***************************/
-$(document).on('click','div.fingerframe.fingerframe_txt',function(e){
-
-	/*
-instantiate tinyMCE:
-    1. get the div's content
-	2. place a textarea exactly on top of the div  (or polymorph the div...)
-	3. instantiate tinyMCE for that textarea only
-	4. set the editor's content
-unstantiate:
-    1. get the editor's content
-    2. delete the editor
-         (the editor has id=text_area_id + "_container" and class "mceEditor")
-    3. set the div's content
-
-
-   // need to make the styles jive
-
-		//is there a better way that just instantiates the
-		//editor from the div?
  
- tinyMCE.get('myTinyMCEinstanceNameID').getContent();		// gets the html content inside tinyMCE
- tinyMCE.get('myTinyMCEinstanceNameID').setContent('<p> yo </p>'); 
-
-*/
-
- //var id_orig = $(this).attr('id');
- var id_temp = 'tinyMCE_editor_temporary_instantiating_identifier';
-
- $(this).attr('id',id_temp);
- // tinyMCE does not instantiate where it should...
- tinyMCE.execCommand('mceAddControl',false,id_temp);
- //id_orig == undefined ? 
- //$(this).removeAttr('id');
- //: $(this).attr('id',id_temp);
-
-});//click
-
-
+  
 };//fingerframe.init
 
 
@@ -242,10 +193,6 @@ return $("<div />")
 };//fingerframe.src()
 
 
-
-
-
-
 fingerframe.txt = function(txt,txtDimensions){
 // auto-create a fingerframe with a text editability in it
 
@@ -254,12 +201,14 @@ if(txtDimensions == undefined) {
 	var txtDimensions = {height:Math.max(100,l),width:Math.max(100,l)};
 }
 
+
+
 /*****************************
  *  This method is chainable-
  *  it returns a jQuery to the
  *  fresh fingerframe:
  *****************************/
-return $("<div />")
+var d = $("<div />")
   .appendTo('body')
   .addClass('fingerframe')
   .addClass('fingerframe_txt')
@@ -275,9 +224,22 @@ return $("<div />")
 	  position	: 'absolute',
 
 	  'overflow-y': 'auto',
+	  'overflow-x': 'hidden'
 	})//css
   .html(txt);
-	
+  
+  
+/***************************
+ * Now implement the TEXT functionality
+ * (so that nicEdit can be instantiated) 
+ ***************************/
+
+  var tempID = 'nicEditInstantiationTemporaryID';
+  d.attr('id',tempID);  
+  fingerframe.nicEditManager.addInstance(tempID);
+  d.removeAttr('id');
+  
+  return d;
 };
 
 
