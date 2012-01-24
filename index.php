@@ -1,24 +1,6 @@
 <html>
 
-<?php
-// I intend to implement a neat ~blogging system,
-// with a few specific goals:
-
-// drag, crop, resize, etc.
-// drag-and-drop image/movie insertion
-
-// the main p0st dynamic is to drag an image
-// then comment on it, with possibly more images
-
-// the main page renders (at least a header of) ~25 p0sts
-// Which 25 is determined by search terms,
-// or if none are entered, p0st youth.
-
-// p0sts can be edited afterward.
-
-// records a lot of metadata.
-
-?>
+<?php ?>
 
 <head>
 <script src="js/jquery.js"			 ></script>
@@ -26,101 +8,48 @@
 <script src="js/tweaks.js"			 ></script>
 <script src="js/fingerframe.js"		 ></script>
 <script src="js/logger-editor.js"	 ></script>
-<!--	I need a few javascript libraries.
-
-	jquery.js
-		the most awesome js library
-
-	tiny_mce.js
-		a nice, simple rich text editor
-
-	tweaks.js
-		all my jQuery and other tweaks
-		including my homebrew
-		drag-and-drop event binder
-
-	fingerframe.js
-		defines a javascript object
-		to be assigned to each image
-		It will allow basic mouse
-		interaction with the image:
-			S-drag = move  the image
-			A-drag = scale the image
-			C-drag = crop  the image
-			???    = attach a label
-				 to the image
-			???    = rotate the image
-			...
-		To accomplish these degrees of
-		freedom, each image will be
-		stored as $("div>img.fingerframe#fingerframe12")
-		or similar.
-
-	logger-home.js
-		loads the event context of the main page:
-			fingerframe mouse events disabled.
-			'c'	  = initiates a p0st
-			d&d image = initiates a p0st
-				    with that image
-				    inserted
-			'p'	  = open the category
-				    icon palette
-			d&d icon  = initiate a p0st
-				    under that category
-			's'	  = open the search interface
-
-	logger-editor.js
-		loads the event context of the p0st editor:
-			fingerframe mouse events enabled.
-			typing	  = insert the typed text
-				    (in a BG <pre> ?)
-			d&d image = insert that image
-				    (as a fingerframe)
-			d&d icon  = add that category to
-				    the current p0st
-			S-Enter   = save the p0st and
-				    restore the main page
-
-	logger-search.js
-		loads the event context of the search interface:
-					(maybe use a lightbox/fancybox for this?)
-			fingerframe mouse events disabled.
-			a date slider sets the range of
-				p0sts to filter out
-			typing	  = add the typed text to
-				    the search terms
-			d&d icon  = filter p0sts from
-				    that category
-			filter state is automatically
-				POSTED to render.php
-				onchange or with a timeout
-			S-Enter   = finish search
-			
-	render.php
-		renders a set of p0sts
-			$('#p0st_frame').load('render.php')
-			takes the current search terms
-				as an arguemnt (GET/POST)
-			returns a thumbnail of all the 
-				matching files
-			
--->
 <script type="text/javascript">
 	$(document).ready(function(){
 		fingerframe.init(); 
-		//fingerframe.src('images/airgear.jpg'); 
-		//$('div').css('border','1px solid black');
 		fingerframe.txt("Four score and seven years ago our fathers brought forth on this continent a new nation, conceived in liberty, and dedicated to the proposition that all men are created equal. "+
 						"Now we are engaged in a great civil war, testing whether that nation, or any nation, so conceived and so dedicated, can long endure. We are met on a great battle-field of that war. We have come to dedicate a portion of that field, as a final resting place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. "+
 						"But, in a larger sense, we can not dedicate, we can not consecrate, we can not hallow this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract. The world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us—that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion—that we here highly resolve that these dead shall not have died in vain—that this nation, under God, shall have a new birth of freedom—and that government of the people, by the people, for the people, shall not perish from the earth."
 						);//fingerframe.txt
+		fingerframe.txt("<h1>Gettysburg Address</h1>",{x:1000,y:100});//fingerframe.txt
+
+		fingerframe.src('images/airgear.jpg'); 
+
+/*
+		$('<div />').css({
+			position:'absolute',
+			border:	'1px solid black',
+			height:	200,
+			width:	100,
+			top:	0,
+			left:	0,
+		}).addClass('fingerframe')
+		.attr('id','black')
+		.appendTo('body');
+		$('<div />').css({
+			position:'absolute',
+			border:	'1px solid red',
+			height:	100,
+			width:	200,
+			top:	200,
+			left:	100,
+		}).addClass('fingerframe')
+		.attr('id','red')
+		.appendTo('body');
+*/		
+		
 	});//ready
 </script>
 
 
 </head>
 <body>
-<!-- 	put a few static elements here
+<!-- 
+	put a few static elements here
 	(hot key reminder, date-time...)
 	let the rest be generated by
 	another php script, render.php

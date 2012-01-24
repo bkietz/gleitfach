@@ -144,7 +144,7 @@ drag: function(cbs){
 		// are _all_ the other start conditions met?
 		if(e.which != 1) return;
 		for(var i in cbs.viv)
-			if(  !cbs.viv[i].call($(cbs.$),e,cbs)  )	return;
+			if(  !cbs.viv[i].call(this,e,cbs)  )	return;
 
 		/*************
 		 * PRE-DRAG
@@ -154,8 +154,12 @@ drag: function(cbs){
 			e.stopPropagation();
 		
 			// pre-drag callback
-			cbs.pre.call($(cbs.$),e,cbs);
-		
+			cbs.pre.call(this,e,cbs);
+			
+			$(document).one('mouseup',	{this:this},	cbs.mouseup);
+			$(document).on('mousemove',	{this:this},	cbs.mousemove);
+			};//cbs.radix.fn
+
 		/*************
 		 * POST-DRAG
 		 *************/
@@ -163,9 +167,9 @@ drag: function(cbs){
 			// Stop default event effects
 			e.preventDefault();
 			e.stopPropagation();
-			
+						
 			// post-drag callback
-			cbs.post.call($(cbs.$),e,cbs);
+			cbs.post.call(e.data.this,e,cbs);
 			
 			// at drag end, unbind 
 			// mousemove and mouseup
@@ -174,7 +178,7 @@ drag: function(cbs){
 			// empty cbs._
 			cbs._ = {};
 
-			};	$(document).one('mouseup',	cbs.mouseup);
+			};//mouseup
 
 		/*************
 		 * INTER-DRAG
@@ -185,7 +189,7 @@ drag: function(cbs){
 			e.stopPropagation();
 			
 			// inter-drag callback
-			cbs.inter.call($(cbs.$),e,cbs);
+			cbs.inter.call(e.data.this,e,cbs);
 			
 			// check for drag ending:
 			/**	(we don't need to check for
@@ -196,9 +200,8 @@ drag: function(cbs){
 				if(  cbs.mort[i].call($(cbs.$),e,cbs)  )
 					$(document).trigger('mouseup');
 					
-			};	$(document).on('mousemove',	cbs.mousemove);
+			};//mousemove
 
-		};//cbs.radix.fn
 
 
 	/**	radix.fn() is the only static binding, 
