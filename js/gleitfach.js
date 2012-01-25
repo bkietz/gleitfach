@@ -1,6 +1,13 @@
 /*****************************
- * gleitfach © Ben Kietzman, 2011
- * 
+
+gleitfach © Ben Kietzman, 2011
+
+(Creative Commons Attribution-NonCommercial-ShareAlike —
+ http://creativecommons.org/licenses/by-nc-sa/3.0
+ I'm not opposed to commercial projects using my software
+ but I'd like to be told of them first)
+
+
  * gleitfach is a barebones HTML editing system.
  * (German for 'sliding box' - rhymes with kite-Bach)
  *****************************/

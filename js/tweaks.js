@@ -1,9 +1,18 @@
 /*********************
- * tweaks.js © Ben Kietzman, 2011
- * 
- * tweaks.js is a library of miscellaneous
- * jQuery tweaks and other functions.
- *
+
+tweaks.js © Ben Kietzman, 2011
+
+(Creative Commons Attribution-NonCommercial-ShareAlike —
+ http://creativecommons.org/licenses/by-nc-sa/3.0
+ I'm not opposed to commercial projects using my software
+ but I'd like to be told of them first)
+ 
+
+
+
+tweaks.js is a library of miscellaneous
+jQuery tweaks and other functions.
+
 
 $('').corners()		// gets/sets the positions of the
 					// queried element's corners/center
