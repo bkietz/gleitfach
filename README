@@ -1,3 +1,8 @@
+
+no rendering or other PHP functionality is necessary-
+just us <iframe> to pull up the whole p0st
+
+
 // I intend to implement a neat ~blogging system,
 // with a few specific goals:
 

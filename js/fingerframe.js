@@ -1,3 +1,5 @@
+/*****************************
+ *****************************/
 fingerframe = {};
 /*****************************
  * fingerframe defines a class of DOM element
@@ -7,23 +9,22 @@ fingerframe = {};
  * 		S-drag	= move the div
  * 		C-drag	= crop the div
  * 		S-wheel	= raise/lower DOM precedence
+ * 		C-dbclk  = lock/unlock the fingerframe
  * 
  * The fingerframe has subclasses
  * for allowing an img within 
  * to be cropped/scaled/rotated/etc.
  * for allowing nicEdit instantiation
  * for a canvas painter or flash video...
- * 
- * This should possibly, in the future, 
- * be an iframe or something with more
- * gravitas than a div.
  ******************************/
 
-fingerframe.init = function(){
+fingerframe.init = function(editorWindowID,nicEditPanelID){
 
 
+
+fingerframe.editorWindowID = editorWindowID;
 fingerframe.nicEditManager = new nicEditor();	
-fingerframe.nicEditManager.setPanel('nicEditPanel');
+fingerframe.nicEditManager.setPanel(nicEditPanelID);
 
 
 /*****************************
@@ -41,8 +42,6 @@ $('div.fingerframe')
 		],//viv
 
 	  pre:function(e,c){
-		// c(orner) = upper right corner of the image
-		// m(ouse)  = mouse position
 		c._ = {
 		    mouse:	{x:e.pageX,	y:e.pageY,},
 			corner:	$(this).offset(),
@@ -57,8 +56,6 @@ $('div.fingerframe')
 		},//inter
 
   });//S-drag
-
-
 
 
 /*****************************
@@ -89,8 +86,48 @@ $('div.fingerframe')
   });//C-drag
   
   
+/*****************************
+ * Raise/lower the fingerframe by
+ * holding down only shift 
+ * during mousewheeling
+ *****************************/
+$(document)
+  .on('mousewheel','div.fingerframe',
+	function(e){
+		if( e.shiftKey && !e.ctrlKey && !e.altKey);
+		else return;
 
+		e.stopPropagation();
+		e.preventDefault();
+
+		if(e.originalEvent.wheelDelta>0 && $(this).next().length)
+			$(this).next().after($(this).detach());
+
+		if(e.originalEvent.wheelDelta<0 && $(this).prev().length)
+			$(this).prev().before($(this).detach());
+		
+  });//S-mousewheel
   
+  
+/*****************************
+ * lock/unlock the fingerframe by
+ * holding down only ctrl 
+ * during a double click
+ *****************************/
+$(document)
+  .on('dblclick','div.fingerframe,  div.fingerframe_inactive',
+	function(e){
+		if(!e.shiftKey &&  e.ctrlKey && !e.altKey);
+		else return;
+
+		e.stopPropagation();
+		e.preventDefault();
+
+		$(this).toggleClass('fingerframe').toggleClass('fingerframe_inactive');
+	
+  });//C-dblclick
+
+
 /***************************
  * Now implement the IMAGE functionality
  * (so that the image position remains
@@ -124,15 +161,9 @@ $('div.fingerframe')
 		},//inter
 
   });//C-drag
-  
- 
+
   
 };//fingerframe.init
-
-
-
-
-
 
 
 fingerframe.src = function(src,srcDimensions){
@@ -140,10 +171,12 @@ fingerframe.src = function(src,srcDimensions){
 
 var generateDiv = function(size){	
 	return $("<div />")
-	.appendTo('body')
+	.appendTo('#'+fingerframe.editorWindowID)
 	.addClass('fingerframe')
 	.addClass('fingerframe_img')
 	.css({
+
+		'z-index'	: 0,
 
 	'background-size'		: size.width+' '+size.height,
 	'background-image'		:'url(images/airgear.jpg)',
@@ -196,7 +229,7 @@ if(txtDimensions == undefined) {
  *  fresh fingerframe:
  *****************************/
 var d = $("<div />")
-  .appendTo('body')
+  .appendTo('#'+fingerframe.editorWindowID)
   .addClass('fingerframe')
   .addClass('fingerframe_txt')
   .attr({
@@ -204,6 +237,9 @@ var d = $("<div />")
       width_0	: txtDimensions.width,
     })//attr
   .css({
+
+	  'z-index'	: 0,
+	  
 	  left		: 0,
 	  top		: 0,
       height	: txtDimensions.height,
@@ -219,8 +255,8 @@ var d = $("<div />")
 /***************************
  * Now implement the TEXT functionality
  * 
- * This nicEdit instantiatiation is too
- * hacky by half for my taste.
+ * This nicEdit instantiatiation is
+ * too hacky by half for my taste.
  ***************************/
 
   var tempID = 'nicEditInstantiationTemporaryID_' + $.Event().timeStamp;
