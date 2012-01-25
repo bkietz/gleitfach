@@ -335,7 +335,7 @@ hexEncode: function(){
 // SVG.
 generatePopAroundMenu = function(e,entries){
 	var s = '', d = '', r = 20, R = 200, angle_i = 0, angle_f = 0, angle_margin = Math.PI/180*-3;
-	s += '<svg version = "1.1">';
+	s += '<svg version="1.1" style="position:absolute">';
 	s += '<g id="popAroundMenuG">';
 	
 	// hack:
