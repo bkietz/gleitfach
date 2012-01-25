@@ -1,39 +1,46 @@
 /*****************************
+ * gleitfach © Ben Kietzman, 2011
+ * 
+ * gleitfach is a barebones HTML editing system.
+ * (German for 'sliding box' - rhymes with kite-Bach)
  *****************************/
-fingerframe = {};
+
+
+
+gleitfach = {};
 /*****************************
- * fingerframe defines a class of DOM element
+ * gleitfach defines a class of DOM element
  * with event bindings for basic
  * mouse interaction with a div:
  * 
  * 		S-drag	= move the div
  * 		C-drag	= crop the div
  * 		S-wheel	= raise/lower DOM precedence
- * 		C-dbclk  = lock/unlock the fingerframe
+ * 		C-dbclk  = lock/unlock the gleitfach
  * 
- * The fingerframe has subclasses
+ * The gleitfach has subclasses
  * for allowing an img within 
  * to be cropped/scaled/rotated/etc.
  * for allowing nicEdit instantiation
  * for a canvas painter or flash video...
  ******************************/
 
-fingerframe.init = function(editorWindowID,nicEditPanelID){
+gleitfach.init = function(editorWindowID,nicEditPanelID){
 
 
 
-fingerframe.editorWindowID = editorWindowID;
-fingerframe.nicEditManager = new nicEditor();	
-fingerframe.nicEditManager.setPanel(nicEditPanelID);
+gleitfach.editorWindowID = editorWindowID;
+gleitfach.nicEditManager = new nicEditor();	
+gleitfach.nicEditManager.setPanel(nicEditPanelID);
 
 
 /*****************************
- * RE-POSITION the fingerframe by
+ * RE-POSITION the gleitfach by
  * holding down only shift 
  * during a drag
  * 	The div will track with the mouse
  *****************************/
-$('div.fingerframe')
+$('div.gleitfach')
   .drag({	  
       viv:[
 		function(e){return  e.shiftKey},
@@ -59,12 +66,12 @@ $('div.fingerframe')
 
 
 /*****************************
- * CROP the fingerframe by
+ * CROP the gleitfach by
  * holding down only ctrl
  * during a drag
  * 		The lower right corner will track with the mouse
  *****************************/
-$('div.fingerframe')
+$('div.gleitfach')
   .drag({
       viv:[
 		function(e){return !e.shiftKey},
@@ -87,12 +94,12 @@ $('div.fingerframe')
   
   
 /*****************************
- * Raise/lower the fingerframe by
+ * Raise/lower the gleitfach by
  * holding down only shift 
  * during mousewheeling
  *****************************/
 $(document)
-  .on('mousewheel','div.fingerframe',
+  .on('mousewheel','div.gleitfach',
 	function(e){
 		if( e.shiftKey && !e.ctrlKey && !e.altKey);
 		else return;
@@ -110,12 +117,12 @@ $(document)
   
   
 /*****************************
- * lock/unlock the fingerframe by
+ * lock/unlock the gleitfach by
  * holding down only ctrl 
  * during a double click
  *****************************/
 $(document)
-  .on('dblclick','div.fingerframe,  div.fingerframe_inactive',
+  .on('dblclick','div.gleitfach,  div.gleitfach_inactive',
 	function(e){
 		if(!e.shiftKey &&  e.ctrlKey && !e.altKey);
 		else return;
@@ -123,8 +130,9 @@ $(document)
 		e.stopPropagation();
 		e.preventDefault();
 
-		$(this).toggleClass('fingerframe').toggleClass('fingerframe_inactive');
-	
+		$(this).toggleClass('gleitfach').toggleClass('gleitfach_inactive');
+		//add something so that gleitfach_txt's contents can be locked, too
+		
   });//C-dblclick
 
 
@@ -133,7 +141,7 @@ $(document)
  * (so that the image position remains
  *  absolute even when TL is being cropped) 
  ***************************/
- $('div.fingerframe.fingerframe_img')
+ $('div.gleitfach.gleitfach_img')
  .drag({
       viv:[
 		function(e){return !e.shiftKey},
@@ -163,17 +171,17 @@ $(document)
   });//C-drag
 
   
-};//fingerframe.init
+};//gleitfach.init
 
 
-fingerframe.src = function(src,srcDimensions){
-// auto-create a fingerframe with an image in it
+gleitfach.src = function(src,srcDimensions){
+// auto-create a gleitfach with an image in it
 
 var generateDiv = function(size){	
 	return $("<div />")
-	.appendTo('#'+fingerframe.editorWindowID)
-	.addClass('fingerframe')
-	.addClass('fingerframe_img')
+	.appendTo('#'+gleitfach.editorWindowID)
+	.addClass('gleitfach')
+	.addClass('gleitfach_img')
 	.css({
 
 		'z-index'	: 0,
@@ -210,11 +218,11 @@ if(srcDimensions == undefined) {
 				});//load
 	 return ret;	}//if
 else return generateDiv(srcDimensions);
-};//fingerframe.src()
+};//gleitfach.src()
 
 
-fingerframe.txt = function(txt,txtDimensions){
-// auto-create a fingerframe with a text editability in it
+gleitfach.txt = function(txt,txtDimensions){
+// auto-create a gleitfach with a text editability in it
 
 if(txtDimensions == undefined) {
 	var l = Math.floor(Math.sqrt(txt.length)*10);
@@ -226,12 +234,12 @@ if(txtDimensions == undefined) {
 /*****************************
  *  This method is chainable-
  *  it returns a jQuery to the
- *  fresh fingerframe:
+ *  fresh gleitfach:
  *****************************/
 var d = $("<div />")
-  .appendTo('#'+fingerframe.editorWindowID)
-  .addClass('fingerframe')
-  .addClass('fingerframe_txt')
+  .appendTo('#'+gleitfach.editorWindowID)
+  .addClass('gleitfach')
+  .addClass('gleitfach_txt')
   .attr({
       height_0	: txtDimensions.height,
       width_0	: txtDimensions.width,
@@ -261,7 +269,7 @@ var d = $("<div />")
 
   var tempID = 'nicEditInstantiationTemporaryID_' + $.Event().timeStamp;
   d.attr('id',tempID);
-  fingerframe.nicEditManager.addInstance(tempID);
+  gleitfach.nicEditManager.addInstance(tempID);
   d.removeAttr('id');
   
   return d;

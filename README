@@ -1,124 +1,102 @@
+Release notes for the ❘z〉Logger, ©Ben Kietzman, 2011
 
-no rendering or other PHP functionality is necessary-
-just us <iframe> to pull up the whole p0st
-
-
-// I intend to implement a neat ~blogging system,
-// with a few specific goals:
-
-// drag, crop, resize, etc.
-// drag-and-drop image/movie insertion
-
-// the main p0st dynamic is to drag an image
-// then comment on it, with possibly more images
-
-// the main page renders (at least a header of) ~25 p0sts
-// Which 25 is determined by search terms,
-// or if none are entered, p0st youth.
-
-// p0sts can be edited afterward.
-
-// records a lot of metadata.
+	Below is a description of the logger's
+	functionality and limitations.
 
 
-<!--	I need a few javascript libraries.
+**************
+  ❘z〉Logger
+**************
+	
+	This is a logger I wrote to take notes,
+		keep research logs, store todo lists, etc.
+		≈ a blogging CMS, with a few specific goals: 
+			→drag-{reposition, crop, resize}
+			→drag&drop image/movie insertion
+			→search/metadata management for p0sts
+			→can run locally or remotely
+			~→integration with Mathematica, Mendeley...
+	
+	The main page shall render ~25 p0sts
+		(or at least a header/thumbnail thereof)
+	Specifically which 25 is determined by search 
+		terms or (if none are entered) p0st youth.
+	For new p0sts, an HTML editor is loaded. This
+		editor should be as general as possible, and
+		should implement one dynamic with particular
+		fluidity and versatility:
+			→drag&drop an image and comment thereupon
+	p0sts shall be editable afterward, and the logger
+		should record a lot of metadata for later
+		convenience when searching.
 
-	jquery.js
-		the most awesome js library
 
-	tiny_mce.js
-		a nice, simple rich text editor
 
-	tweaks.js
-		all my jQuery and other tweaks
-		including my homebrew
-		drag-and-drop event binder
+***************
+  files
+***************
 
-	fingerframe.js
-		defines a javascript object
-		to be assigned to each image
-		It will allow basic mouse
-		interaction with the image:
-			S-drag = move  the image
-			A-drag = scale the image
-			C-drag = crop  the image
-			???    = attach a label
-				 to the image
-			???    = rotate the image
-			...
-		To accomplish these degrees of
-		freedom, each image will be
-		stored as $("div>img.fingerframe#fingerframe12")
-		or similar.
+	index.html	an example page using the logger
+				with exceedingly random content
 
-	logger-home.js
-		loads the event context of the main page:
-			fingerframe mouse events disabled.
-			'c'	  = initiates a p0st
-			d&d image = initiates a p0st
-				    with that image
-				    inserted
-			'p'	  = open the category
-				    icon palette
-			d&d icon  = initiate a p0st
-				    under that category
-			's'	  = open the search interface
+	js/
+		jquery.js		the most awesome 
+						javascript library
 
-	logger-editor.js
-		loads the event context of the p0st editor:
-			fingerframe mouse events enabled.
-			typing	  = insert the typed text
-				    (in a BG <pre> ?)
-			d&d image = insert that image
-				    (as a fingerframe)
-			d&d icon  = add that category to
-				    the current p0st
-			S-Enter   = save the p0st and
-				    restore the main page
+		gleitfach.js	my HTML editor
+		
+		tweaks.js		my modifications to jQuery
+		
+		nicEdit			soft link to my version of
+						nicEdit.
+						I intend to abolish this dependency
+						soon, but for the meanwhile this one
+						can be downloaded from nicedit.com
+		
+	images/
+		airgera.jpg		a random image of a
+						man freaking out
 
-	logger-search.js
-		loads the event context of the search interface:
-					(maybe use a lightbox/fancybox for this?)
-			fingerframe mouse events disabled.
-			a date slider sets the range of
-				p0sts to filter out
-			typing	  = add the typed text to
-				    the search terms
-			d&d icon  = filter p0sts from
-				    that category
-			filter state is automatically
-				POSTED to render.php
-				onchange or with a timeout
-			S-Enter   = finish search
+
+***************
+  context map
+***************
+
+	Logger main page:
+	*****************
+		gleitfach mouse events disabled.
+		'c'	  	  = initiates a p0st
+		d&d image = initiates a p0st with 
+					that image inserted 
+					as an image gleitfach
+		'p'		  = open the category
+					icon palette
+		d&d icon  = initiate a p0st
+					under that category
+		's'		  = open the search interface
+
+	p0st Editor:
+	************
+		gleitfach mouse events enabled.
+		typing	  = insert the typed text
+					in a text gleitfach
+		d&d image = insert that image
+					as a gleitfach
+		d&d icon  = add that category to
+					the current p0st
+		S-Enter   = save the p0st and
+					restore the main page
+
+	Search interface:
+	*****************
+	(lightbox/fancybox with a <form>)
+		gleitfach mouse events disabled.
+		a date slider sets a range to filter p0sts
+		d&d icon  = filter p0sts from
+					that category
+		filter state is automatically
+			applied	on change/with a timeout
+		S-Enter   = finish search
 			
-	render.php
-		renders a set of p0sts
-			$('#p0st_frame').load('render.php')
-			takes the current search terms
-				as an arguemnt (GET/POST)
-			returns a thumbnail of all the 
-				matching files
-			
--->
 
 
-
-The logger is essentially a wysiwyg html editor, with a system for searching/rendering the results.
-Most of the editor's pieces were already there, and what wasn't I have coded.
-The editor, now that it's compiled, can be used for many things.
-Make it instance-able and put it into deb, github etc.
-	(In short, canibalize it for a different project- call it traum or something.)
-Code the logger using traum- it will be easy.
-
-nicEdit is excellent, but not quite excellent enough. It uses this lame-ass
-	bkLib thing instead of jQuery. I'd like to fix that...
-
-
-I could perhaps just extend javascript to contain some of the methods I want (like perspective...)
-	http://uselessbyte.blogspot.com/2009/12/adding-custom-javascript-bindings-to.html
-	https://lists.webkit.org/pipermail/webkit-dev/2009-January/006417.html
-
-
-cdf kicks ass. It's mathematica, just mark-up instead of wysiwyg
-        ... except I gotta figure out how to edit one without mathematica.
-	It would be excellent to incorporate CDF into the logger somehow.

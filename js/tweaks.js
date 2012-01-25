@@ -1,31 +1,71 @@
+/*********************
+ * tweaks.js © Ben Kietzman, 2011
+ * 
+ * tweaks.js is a library of miscellaneous
+ * jQuery tweaks and other functions.
+
+$('').corners()		// gets/sets the positions of the
+					// queried element's corners/center
+					
+$('').drag()	// adds bindings for events in 
+				// a drag (start, end, etc.)
+				
+$('').serializeRequest()	// generate an Object from
+							// a <form>'s values:
+							// {field1:	value1,
+							//  filed2:	value2
+							//  ...}
+							
+$('').dragAndDrop()		// adds bindings for drag&drop
+
+$.paramsPOST()	// flattens an Object so that its
+				// structure is preserved under POST
+				
+"hello".hexEncode()		// encode each ASCII to two
+						// hexadecimal characters
+						
+generatePopAroundMenu()		// generate an SVG menu
+							// for the input entries
+							// (soon to be abolished in
+							//  favor of a PHP file)
+
+
+
+
+ ***********************/
+ 
+ 
+ 
+ 
+
 $.extend($.prototype,{
 
 corners: function(targetCorner, setValue, oppositeSetValue){
-	/*********************
-	 * $('').corners() gets/sets the positions
-	 *  of the queried element's corners/center.
-	 * 
-	 * corners are indicated with two characters,
-	 * the first denoting vertical and the second
-	 * horizontal position: 'TL' = top left, etc.
-	 * 
-	 * If a corner alone is specified, corners()
-	 * returns the position of that corner 
-	 * formatted: {x:304,y:345}
-	 * 
-	 * If a corner is specified with two positions,
-	 * the element is positioned and resized such
-	 * that the specified corner is placed at the 
-	 * first position, and the corner opposite it
-	 * at the second.
-	 * 
-	 * If no arguments are provided, all corners'
-	 * positions are returned in a single object.
-	 * 
-	 * If only one position is given, the opposite
-	 * corner is held constant.
-	 * 
-	 ***********************/
+/*********************
+ * $('').corners() gets/sets the positions
+ *  of the queried element's corners/center.
+ * 
+ * corners are indicated with two characters,
+ * the first denoting vertical and the second
+ * horizontal position: 'TL' = top left, etc.
+ * 
+ * If a corner alone is specified, corners()
+ * returns the position of that corner 
+ * formatted: {x:304,y:345}
+ * 
+ * If a corner is specified with two positions,
+ * the element is positioned and resized such
+ * that the specified corner is placed at the 
+ * first position, and the corner opposite it
+ * at the second.
+ * 
+ * If no arguments are provided, all corners'
+ * positions are returned in a single object.
+ * 
+ * If only one position is given, the opposite
+ * corner is held constant.
+ * 
+ ***********************/
 
 	// no arguments:
 	if(targetCorner == undefined)
