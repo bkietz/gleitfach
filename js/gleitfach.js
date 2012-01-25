@@ -1,9 +1,3 @@
-<<<<<<< HEAD:js/gleitfach.js
-=======
-/*****************************
- *****************************/
-fingerframe = {};
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
 /*****************************
  * gleitfach © Ben Kietzman, 2011
  * 
@@ -22,11 +16,7 @@ gleitfach = {};
  * 		S-drag	= move the div
  * 		C-drag	= crop the div
  * 		S-wheel	= raise/lower DOM precedence
-<<<<<<< HEAD:js/gleitfach.js
  * 		C-dbclk  = lock/unlock the gleitfach
-=======
- * 		C-dbclk  = lock/unlock the fingerframe
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
  * 
  * The gleitfach has subclasses
  * for allowing an img within 
@@ -35,7 +25,6 @@ gleitfach = {};
  * for a canvas painter or flash video...
  ******************************/
 
-<<<<<<< HEAD:js/gleitfach.js
 gleitfach.init = function(editorWindowID,nicEditPanelID){
 
 
@@ -43,15 +32,6 @@ gleitfach.init = function(editorWindowID,nicEditPanelID){
 gleitfach.editorWindowID = editorWindowID;
 gleitfach.nicEditManager = new nicEditor();	
 gleitfach.nicEditManager.setPanel(nicEditPanelID);
-=======
-fingerframe.init = function(editorWindowID,nicEditPanelID){
-
-
-
-fingerframe.editorWindowID = editorWindowID;
-fingerframe.nicEditManager = new nicEditor();	
-fingerframe.nicEditManager.setPanel(nicEditPanelID);
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
 
 
 /*****************************
@@ -114,16 +94,11 @@ $('div.gleitfach')
   
   
 /*****************************
-<<<<<<< HEAD:js/gleitfach.js
  * Raise/lower the gleitfach by
-=======
- * Raise/lower the fingerframe by
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
  * holding down only shift 
  * during mousewheeling
  *****************************/
 $(document)
-<<<<<<< HEAD:js/gleitfach.js
   .on('mousewheel','div.gleitfach',
 	function(e){
 		if( e.shiftKey && !e.ctrlKey && !e.altKey);
@@ -135,19 +110,6 @@ $(document)
 		if(e.originalEvent.wheelDelta>0 && $(this).next().length)
 			$(this).next().after($(this).detach());
 
-=======
-  .on('mousewheel','div.fingerframe',
-	function(e){
-		if( e.shiftKey && !e.ctrlKey && !e.altKey);
-		else return;
-
-		e.stopPropagation();
-		e.preventDefault();
-
-		if(e.originalEvent.wheelDelta>0 && $(this).next().length)
-			$(this).next().after($(this).detach());
-
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
 		if(e.originalEvent.wheelDelta<0 && $(this).prev().length)
 			$(this).prev().before($(this).detach());
 		
@@ -155,20 +117,12 @@ $(document)
   
   
 /*****************************
-<<<<<<< HEAD:js/gleitfach.js
  * lock/unlock the gleitfach by
-=======
- * lock/unlock the fingerframe by
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
  * holding down only ctrl 
  * during a double click
  *****************************/
 $(document)
-<<<<<<< HEAD:js/gleitfach.js
   .on('dblclick','div.gleitfach,  div.gleitfach_inactive',
-=======
-  .on('dblclick','div.fingerframe,  div.fingerframe_inactive',
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
 	function(e){
 		if(!e.shiftKey &&  e.ctrlKey && !e.altKey);
 		else return;
@@ -176,14 +130,9 @@ $(document)
 		e.stopPropagation();
 		e.preventDefault();
 
-<<<<<<< HEAD:js/gleitfach.js
 		$(this).toggleClass('gleitfach').toggleClass('gleitfach_inactive');
 		//add something so that gleitfach_txt's contents can be locked, too
 		
-=======
-		$(this).toggleClass('fingerframe').toggleClass('fingerframe_inactive');
-	
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
   });//C-dblclick
 
 
@@ -222,7 +171,6 @@ $(document)
   });//C-drag
 
   
-<<<<<<< HEAD:js/gleitfach.js
 };//gleitfach.init
 
 
@@ -234,19 +182,6 @@ var generateDiv = function(size){
 	.appendTo('#'+gleitfach.editorWindowID)
 	.addClass('gleitfach')
 	.addClass('gleitfach_img')
-=======
-};//fingerframe.init
-
-
-fingerframe.src = function(src,srcDimensions){
-// auto-create a fingerframe with an image in it
-
-var generateDiv = function(size){	
-	return $("<div />")
-	.appendTo('#'+fingerframe.editorWindowID)
-	.addClass('fingerframe')
-	.addClass('fingerframe_img')
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
 	.css({
 
 		'z-index'	: 0,
@@ -302,15 +237,9 @@ if(txtDimensions == undefined) {
  *  fresh gleitfach:
  *****************************/
 var d = $("<div />")
-<<<<<<< HEAD:js/gleitfach.js
   .appendTo('#'+gleitfach.editorWindowID)
   .addClass('gleitfach')
   .addClass('gleitfach_txt')
-=======
-  .appendTo('#'+fingerframe.editorWindowID)
-  .addClass('fingerframe')
-  .addClass('fingerframe_txt')
->>>>>>> 472f2f75c550fdc14f365d387464780acc46c1ec:js/fingerframe.js
   .attr({
       height_0	: txtDimensions.height,
       width_0	: txtDimensions.width,

@@ -3,6 +3,7 @@
  * 
  * tweaks.js is a library of miscellaneous
  * jQuery tweaks and other functions.
+ *
 
 $('').corners()		// gets/sets the positions of the
 					// queried element's corners/center
@@ -31,7 +32,7 @@ generatePopAroundMenu()		// generate an SVG menu
 
 
 
-
+ * 
  ***********************/
  
  
