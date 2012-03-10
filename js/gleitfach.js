@@ -11,46 +11,42 @@ gleitfach © Ben Kietzman, 2011
  * gleitfach is a barebones HTML editing system.
  * (German for 'sliding box' - rhymes with kite-Bach)
  *****************************/
-
-
-
 gleitfach = {};
+
+
+
+gleitfach.init = function(startingParent){
+if($(startingParent).addClass('gleitfach_EditorParent').length){
+	
 /*****************************
- * gleitfach defines a class of DOM element
- * with event bindings for basic
- * mouse interaction with a div:
- * 
- * 		S-drag	= move the div
- * 		C-drag	= crop the div
- * 		S-wheel	= raise/lower DOM precedence
- * 		C-dbclk  = lock/unlock the gleitfach
- * 
- * The gleitfach has subclasses
- * for allowing an img within 
- * to be cropped/scaled/rotated/etc.
- * for allowing nicEdit instantiation
- * for a canvas painter or flash video...
- ******************************/
-
-gleitfach.init = function(editorWindowID,nicEditPanelID){
-
-
-
-gleitfach.editorWindowID = editorWindowID;
-gleitfach.nicEditManager = new nicEditor();	
-gleitfach.nicEditManager.setPanel(nicEditPanelID);
-
-
-/*****************************
- * RE-POSITION the gleitfach by
- * holding down only shift 
- * during a drag
- * 	The div will track with the mouse
+ * jQuery selectors etc, declared
+ * for expedient event binding
  *****************************/
-$('div.gleitfach')
+ 
+  gleitfach.parent	= '.gleitfach_EditorParent';
+  gleitfach.child	= '.gleitfach_EditorParent	>*';
+  gleitfach.image	= '.gleitfach_EditorParent	>div>img';
+  gleitfach.text	= '.gleitfach_EditorParent	>div[contenteditable=true]';
+  gleitfach.demis	= $('<div/>').load('images/demiQuadrants.svg');
+  gleitfach.menu	= $('<div/>').css('position','absolute')
+								 .load('images/popAroundMenu.svg');
+  gleitfach.current = $(gleitfach.parent)[0];
+
+}
+else return;
+
+
+
+/*****************************
+ * REPOSITION an element by
+ * holding down no metakeys 
+ * during a drag
+ * 	The element will track with the mouse
+ *****************************/
+$(gleitfach.child)
   .drag({	  
       viv:[
-		function(e){return  e.shiftKey},
+		function(e){return !e.shiftKey},
 		function(e){return !e.ctrlKey},
 		function(e){return !e.altKey}
 		],//viv
@@ -69,16 +65,18 @@ $('div.gleitfach')
 			});//offset
 		},//inter
 
-  });//S-drag
+  });
+//drag
+
 
 
 /*****************************
- * CROP the gleitfach by
+ * CROP the an element by
  * holding down only ctrl
  * during a drag
  * 		The lower right corner will track with the mouse
  *****************************/
-$('div.gleitfach')
+$(gleitfach.child)
   .drag({
       viv:[
 		function(e){return !e.shiftKey},
@@ -97,7 +95,9 @@ $('div.gleitfach')
 		$(this).corners(c._.quadrant,{x:e.pageX,y:e.pageY});
 		},//inter
 
-  });//C-drag
+  });
+//C-drag
+  
   
   
 /*****************************
@@ -106,7 +106,7 @@ $('div.gleitfach')
  * during mousewheeling
  *****************************/
 $(document)
-  .on('mousewheel','div.gleitfach',
+  .on('mousewheel',gleitfach.child,
 	function(e){
 		if( e.shiftKey && !e.ctrlKey && !e.altKey);
 		else return;
@@ -121,34 +121,16 @@ $(document)
 			$(this).prev().before($(this).detach());
 		
   });//S-mousewheel
+//S-mousewheel
   
   
-/*****************************
- * lock/unlock the gleitfach by
- * holding down only ctrl 
- * during a double click
- *****************************/
-$(document)
-  .on('dblclick','div.gleitfach,  div.gleitfach_inactive',
-	function(e){
-		if(!e.shiftKey &&  e.ctrlKey && !e.altKey);
-		else return;
-
-		e.stopPropagation();
-		e.preventDefault();
-
-		$(this).toggleClass('gleitfach').toggleClass('gleitfach_inactive');
-		//add something so that gleitfach_txt's contents can be locked, too
-		
-  });//C-dblclick
-
 
 /***************************
  * Now implement the IMAGE functionality
  * (so that the image position remains
  *  absolute even when TL is being cropped) 
  ***************************/
- $('div.gleitfach.gleitfach_img')
+ $(gleitfach.child+'.gleitfach_img')
  .drag({
       viv:[
 		function(e){return !e.shiftKey},
@@ -176,25 +158,166 @@ $(document)
 		},//inter
 
   });//C-drag
-
-  
-};//gleitfach.init
+//C-drag
 
 
+
+/***************************
+ * instantiate a gleitfach_img 
+ * by dropping an IMAGE into
+ * the editor area 
+ ***************************/
+ var reader = new FileReader();
+ reader.onload = function(e){
+	gleitfach.src(
+		e.target.result
+		.replace('data:base64,',
+				 'data:'
+					+ e.target.fileType + 
+				 ';base64,'));
+ };
+
+ $('.gleitfach_EditorParent')
+ .drop({
+	postDrop:	function(e){
+		var dropped_files = e.originalEvent.dataTransfer.files;
+	
+		for(var i=0,f; f=e.originalEvent.dataTransfer.files[i]; ++i){
+			reader.fileName = f.name;
+			reader.fileType = f.type;
+			reader.readAsDataURL(f.webkitSlice());
+		};//for
+	 }, 
+	preDrop:	function(e){
+//		console.log(e,e.originalEvent.dataTransfer.files,e.originalEvent.dataTransfer.items,e.originalEvent.dataTransfer.items.item());
+		return true;
+	 }
+ });
+//drop
+
+
+
+/***************************
+ * open a TEXT editable <div/> 
+ * by holding shift and clicking 
+ * where you want to start typing
+ ***************************/
+ $(document).on('mouseover',gleitfach.text,function(e){this.focus();});
+ $(document).on('click',gleitfach.parent,function(e){
+	 if(e.shiftKey && !e.ctrlKey && !e.altKey); else return;
+	
+	 
+	 $('<div/>')
+		.appendTo(gleitfach.parent)
+		.attr('contenteditable','true')
+		.offset({left:e.pageX,top:e.pageY})
+		.height(100).width(200)
+		.focus();
+ });
+//S-click
+
+
+
+/***************************
+ * DELETE an element by holding
+ * ctrl and double clicking
+ ***************************/
+ $(document).on('dblclick',gleitfach.child,function(e){
+	 if(!e.shiftKey && e.ctrlKey && !e.altKey); else return;
+
+	 e.preventDefault();
+	 e.stopPropagation();
+
+	 $(this).remove();
+ });
+//C-dblclick
+
+
+
+/***************************
+ * TOGGLE gleitfach activity
+ * with Ctrl-E
+ ***************************/
+ $(document).on('keypress',function(e){
+	 if(e.charCode==5 && !e.shiftKey && e.ctrlKey && !e.altKey); else return;
+
+	 e.preventDefault();
+	 e.stopPropagation();
+
+	 $(	'.gleitfach_EditorParent , .gleitfach_EditorParent_inactive').toggleClass
+		('gleitfach_EditorParent', 'gleitfach_EditorParent_inactive');
+ });
+//C-e
+
+
+
+/***************************
+ * Open pop-around MENU
+ * @ the mouse with middleclick
+ ***************************/
+ $(document).on('click',function(e){
+	 if(e.button==1 && !e.shiftKey && !e.ctrlKey && !e.altKey); else return;
+
+	 e.preventDefault();
+	 e.stopPropagation();
+
+	 gleitfach.menu
+		.appendTo('body')
+		.show()
+		.offset({
+				left:	e.pageX-100,
+				top:	e.pageY-100
+				});
+				
+				
+				//////////////////////
+				// PUT THE MENUS ELSEWHERE!
+				
+				
+	/***************************
+	 * Select a NEW PARENT element
+	 * with double middleclick
+	 ***************************/
+	 gleitfach.menu
+		.find('g>circle')
+		.click(e,function(e){
+			 if(e.button==1 && !e.shiftKey && !e.ctrlKey && !e.altKey); else return;
+
+			 e.preventDefault();
+			 e.stopPropagation();
+
+			 var preMenuTarget = e.data.target;
+			 gleitfach.menu.hide();
+			 			 
+			 $(gleitfach.parent).removeClass(	gleitfach.parent.slice(1)	);
+			 $(preMenuTarget).addClass(			gleitfach.parent.slice(1)	);
+			});
+		
+	 gleitfach.menu
+		.find('g:eq(0)')
+		.click(function(e){console.log('TL',e)});
+	
+ });
+//click(1)
+
+
+
+/***************************
+ * helper functions:
+ ***************************/
 gleitfach.src = function(src,srcDimensions){
 // auto-create a gleitfach with an image in it
 
 var generateDiv = function(size){	
 	return $("<div />")
-	.appendTo('#'+gleitfach.editorWindowID)
-	.addClass('gleitfach')
+	.appendTo(gleitfach.parent)
 	.addClass('gleitfach_img')
 	.css({
 
 		'z-index'	: 0,
 
 	'background-size'		: size.width+' '+size.height,
-	'background-image'		:'url(images/airgear.jpg)',
+	'background-image'		:'url('+src+')',
 	'background-position'	:'0 0',
 
 		left		: 0,
@@ -228,6 +351,7 @@ else return generateDiv(srcDimensions);
 };//gleitfach.src()
 
 
+
 gleitfach.txt = function(txt,txtDimensions){
 // auto-create a gleitfach with a text editability in it
 
@@ -238,16 +362,18 @@ if(txtDimensions == undefined) {
 
 
 
+
+
 /*****************************
  *  This method is chainable-
  *  it returns a jQuery to the
  *  fresh gleitfach:
  *****************************/
-var d = $("<div />")
-  .appendTo('#'+gleitfach.editorWindowID)
-  .addClass('gleitfach')
+return $("<div />")
+  .appendTo(gleitfach.parent)
   .addClass('gleitfach_txt')
   .attr({
+      contenteditable : 'true',
       height_0	: txtDimensions.height,
       width_0	: txtDimensions.width,
     })//attr
@@ -267,20 +393,35 @@ var d = $("<div />")
   .html(txt);
   
   
-/***************************
- * Now implement the TEXT functionality
- * 
- * This nicEdit instantiatiation is
- * too hacky by half for my taste.
- ***************************/
-
-  var tempID = 'nicEditInstantiationTemporaryID_' + $.Event().timeStamp;
-  d.attr('id',tempID);
-  gleitfach.nicEditManager.addInstance(tempID);
-  d.removeAttr('id');
-  
-  return d;
 };
+
+
+
+gleitfach.demiQuadrantOverlay = function(element){
+	
+	gleitfach.demis
+		.appendTo('body')
+		.offset(  $(element).offset()  )
+		.width(   $(element).width()   )
+		.height(  $(element).height()  )
+		.find('svg')
+		.offset(  $(element).offset()  )
+		.find('use#actual')
+		.attr({	opacity:	0.4,
+				transform:'scale('+	$(element).width()/4
+							  +','+	$(element).height()/4	+')'
+			});
+
+	// this should be put in a stylesheet somewhere...
+	gleitfach.demis.find('#composite>use:odd [xlink:href="#demiQuadrant"][transform]').attr('fill','white');
+	gleitfach.demis.find('#composite>use:even[xlink:href="#demiQuadrant"][transform]').attr('fill','blue');
+	
+};	 
+
+
+
+};//gleitfach.init
+
 
 
 

@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 20010904//EN'
+              'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+
+<svg xmlns='http://www.w3.org/2000/svg'
+	 height='200px' width='200px'
+     viewBox='0 0 200 200'>
+
+<defs>
+	<g id='main'>
+		<g>
+			<rect x='0' y='0' 		width='100' height='100'	fill='black'	/>
+		</g>
+		<g>
+			<rect x='100' y='0' 	width='100' height='100'	fill='blue'		/>
+		</g>
+		<g>
+			<rect x='100' y='100'	width='100' height='100'	fill='red'		/>
+		</g>
+		<g>
+			<rect x='0' y='100' 	width='100' height='100'	fill='orange'	/>
+		</g>
+		<g>
+			<circle cx='100' cy='100' r='24' fill='black' />
+		</g>
+	</g>
+	<mask id='bullseye'>
+		<circle cx='100' cy='100' r='75' fill='white' />
+		<circle cx='100' cy='100' r='25' fill='black' />
+		<polyline points='100,100 200,100	100,100 100,0	100,100 0,100	 100,100 100,200	100,100'
+				  stroke='black' stroke-width='5' />
+	</mask>
+</defs>
+
+<use xlink:href='#main'	
+	 mask='url(#bullseye)' />
+
+</svg>
+<!-- Beware! There is divergence between HTML5-inline and standard SVG -->

@@ -26,7 +26,7 @@ $('').serializeRequest()	// generate an Object from
 							//  filed2:	value2
 							//  ...}
 							
-$('').dragAndDrop()		// adds bindings for drag&drop
+$('').drop()		// adds bindings for drag&drop
 
 $.paramsPOST()	// flattens an Object so that its
 				// structure is preserved under POST
@@ -34,13 +34,6 @@ $.paramsPOST()	// flattens an Object so that its
 "hello".hexEncode()		// encode each ASCII to two
 						// hexadecimal characters
 						
-generatePopAroundMenu()		// generate an SVG menu
-							// for the input entries
-							// (soon to be abolished in
-							//  favor of a PHP file)
-
-
-
  * 
  ***********************/
  
@@ -264,7 +257,7 @@ drag: function(cbs){
 
 
 
-dragAndDrop: function(dropCallback){
+drop: function(callbacks){
 	/*****************************
 	 * bind a drag-and-drop event
 	 * with a callback for the drop
@@ -284,14 +277,17 @@ dragAndDrop: function(dropCallback){
 
 		drop:
 		function(e) {
+			if(	 callbacks.preDrop && 
+				!callbacks.preDrop(e)  ) return;
+			
 			e.stopPropagation();
 			e.preventDefault();
 
-			dropCallback(e);
+			callbacks.postDrop(e);
 		},//drop
 		
 	},	this.selector);//on
-},//dragAndDrop
+},//drop
 
 
 
@@ -377,105 +373,3 @@ hexEncode: function(){
 
 
 
-
-
-
-// I would really like it if there
-// were a more elegant way to jQuery
-// SVG.
-generatePopAroundMenu = function(e,entries){
-	var s = '', d = '', r = 20, R = 200, angle_i = 0, angle_f = 0, angle_margin = Math.PI/180*-3;
-	s += '<svg version="1.1" style="position:absolute">';
-	s += '<g id="popAroundMenuG">';
-	
-	// hack:
-	// add a <path> for each entry
-	// (we'll edit them later with jQuery)
-	for(var i in entries) 
-		s += '<path />';
-		
-	// clean-up circles
-	s += '<circle cx='+e.pageX+' cy='+e.pageY+' r='+(r+5)+' fill="white" />';
-	s += '<circle cx='+e.pageX+' cy='+e.pageY+' r='+(R)+' fill="none" stroke="white" stroke-width="5" />';
-	s += '</g></svg>';
-	$('body').append(s);
-	var path = $('g#popAroundMenuG').children();
-
-
-	// generate a wedge for each entry:
-	for(var i in entries){
-		angle_f += Math.PI/180*entries[i].angle;
-		var ci = Math.cos(angle_i),
-			si = Math.sin(angle_i),
-			cf = Math.cos(angle_f),
-			sf = Math.sin(angle_f);
-		
-		d = '';
-		d += ' M '+e.pageX+' '+e.pageY+' ';
-		
-		d += ' m '+parseInt(R*ci)+
-			 '   '+parseInt(R*si);
-		d += ' a '+R+' '+R+' 0 0 1 '+
-			 ' '+parseInt(R*(cf-ci))+
-			 ' '+parseInt(R*(sf-si));
-		
-		d += ' l '+parseInt((r-R)*cf)+
-			 '   '+parseInt((r-R)*sf);;
-		d += ' a '+r+' '+r+' 0 0 0 '+
-			 ' '+parseInt(r*(ci-cf))+
-			 ' '+parseInt(r*(si-sf));
-
-		d += ' Z ';
-		
-		$(path[i]).attr({
-			d				:d,
-			fill			:'blue',
-			stroke			:'white',
-			'stroke-width'	:'1',
-		});
-		angle_i = angle_f + angle_margin;
-	};//for
-
-/**	
- * var menuEntry1 = {
-angle:    60,
-label:    $('<p id="1" />').text('testing 1 testing 1 testing 1'),
-callback: function(e){
-    console.log(e);
-    return;
-}};
-var menuEntry2 = {
-angle:    60,
-label:    $('<p id="2" />').text('testing 2 testing 2 testing 2'),
-callback: function(e){
-    console.log(e);
-    return;
-}};
-
-popAroundMenuGenerator = function (menuEntries){
-   var angle = 0;
-   $('<div id="popAroundMenuRoot" />').appendTo('body').offset({top:100,left:100});
-   for(var i in menuEntries) {
-       menuEntries[i].label
-         .appendTo('div#popAroundMenuRoot')
-         .css({
-             'position'                 :'absolute',
-             '-webkit-transform'        :'rotate('+angle+'deg)',
-             '-webkit-transform-origin' :'0 0',
-             })//css
-         .click(menuEntries[i].callback)
-         .click(function(e){$('div#popAroundMenuRoot').remove();});
-
-        angle += menuEntries[i].angle;
-        };//for
-};
-
-popAroundMenuGenerator([menuEntry1,menuEntry2]);
-
-
-
-
-<object data="circle1.svg" type="image/svg+xml"></object>
-
-**/
-}//generatePopAroundMenu

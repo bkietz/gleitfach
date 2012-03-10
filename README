@@ -1,4 +1,4 @@
-Release notes for the ❘z〉Logger © Ben Kietzman, 2011
+gleitfach © Ben Kietzman, 2011
 
 (Creative Commons Attribution-NonCommercial-ShareAlike —
  http://creativecommons.org/licenses/by-nc-sa/3.0
@@ -6,100 +6,47 @@ Release notes for the ❘z〉Logger © Ben Kietzman, 2011
  but I'd like to be told of them first)
 
 
-Below is a description of 
-functionality and limitations.
-
-
-**************
-  ❘z〉Logger
-**************
-	
-	This is a logger I wrote to take notes,
-		keep research logs, store todo lists, etc.
-		≈ a blogging CMS, with a few specific goals: 
-			→drag-{reposition, crop, resize}
-			→drag&drop image/movie insertion
-			→search/metadata management for p0sts
-			→can run locally or remotely
-			~→integration with Mathematica, Mendeley...
-	
-	The main page shall render ~25 p0sts
-		(or at least a header/thumbnail thereof)
-	Specifically which 25 is determined by search 
-		terms or (if none are entered) p0st youth.
-	For new p0sts, an HTML editor is loaded. This
-		editor should be as general as possible, and
-		should implement one dynamic with particular
-		fluidity and versatility:
-			→drag&drop an image and comment thereupon
-	p0sts shall be editable afterward, and the logger
-		should record a lot of metadata for later
-		convenience when searching.
+gleitfach is a barebones HTML editing system.
+(German for 'sliding box' - rhymes with kite-Bach)
 
 
 
-***************
-  files
-***************
-
-	index.html	an example page using the logger
-				with exceedingly random content
-
-	js/
-		jquery.js		the most awesome 
-						javascript library
-
-		gleitfach.js	my HTML editor
-		
-		tweaks.js		my modifications to jQuery
-		
-		nicEdit			soft link to my version of
-						nicEdit.
-						I intend to abolish this dependency
-						soon, but for the meanwhile this one
-						can be downloaded from nicedit.com
-		
-	images/
-		airgera.jpg		a random image of a
-						man freaking out
 
 
-***************
-  context map
-***************
 
-	Logger main page:
-	*****************
-		gleitfach mouse events disabled.
-		'c'	  	  = initiates a p0st
-		d&d image = initiates a p0st with 
-					that image inserted 
-					as an image gleitfach
-		'p'		  = open the category
-					icon palette
-		d&d icon  = initiate a p0st
-					under that category
-		's'		  = open the search interface
+I want gleitfach to be simple, but very general.
 
-	p0st Editor:
-	************
-		gleitfach mouse events enabled.
-		typing	  = insert the typed text
-					in a text gleitfach
-		d&d image = insert that image
-					as a gleitfach
-		d&d icon  = add that category to
-					the current p0st
-		S-Enter   = save the p0st and
-					restore the main page
+One element is selected as the parent window.
+Its children (immediate children only) may be
+moved/cropped however you like, within constraints
+set by the user. These can include:
+                        -must be fully inside the parent's {LTRU}side
+                        -may not be fully outside the parent's {LTRU}side
+                        -may not be shrunk such that content overflows
+                        -webkit transforms not permitted
 
-	Search interface:
-	*****************
-	(lightbox/fancybox with a <form>)
-		gleitfach mouse events disabled.
-		a date slider sets a range to filter p0sts
-		d&d icon  = filter p0sts from
-					that category
-		filter state is automatically
-			applied	on change/with a timeout
-		S-Enter   = finish search
+The user can also edit CSS styles directly using gleitfach.
+Any element can be given class or id which can be referenced 
+in the page's stylesheet, which is appended to the header.
+The user can edit this using gleitfach. Similarly, the user 
+can edit the javascript context using gleitfach.
+$('<style/>').appendTo('head').text('img { border:5px solid black }')
+
+Children can also be created/deleted within the 
+selected parent. Several methods are available,
+from efficient   {      creating a simple text node,
+                        creating a simple image node,
+                        ...     }
+to general        {     contextual pop-around menus,
+                        type in HTML tag type explicitly ('div','pre', ...),
+                        ...     }.
+
+There are several save modes:
+		-Ctrl-s should save the webpage with *no* transcription 
+			errors and *no* key-event overriding in code.
+		-By default, the editor will be contained in the saved page,
+			thereby allowing subsequent editing of the page. This can
+			be disabled in favor of saving the resultant HTML content alone.
+		-The user can aslo choose to compress/encode all libraries, images, 
+			etc. and prepend them to index.html, yielding a monolithic HTML file.
+
