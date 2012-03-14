@@ -9,19 +9,44 @@
 	<rect id='demiQuadrant' x='0' y='0' width='1' height='1' />
 	
 	<g id='composite' >
-		<use xlink:href='#demiQuadrant'	transform='translate(0,0)	scale(1,1)' />
-		<use xlink:href='#demiQuadrant'	transform='translate(1,0)	scale(2,1)' />
-		<use xlink:href='#demiQuadrant'	transform='translate(3,0)	scale(1,1)' />
 
-		<use xlink:href='#demiQuadrant'	transform='translate(0,1)	scale(1,2)' />
-		<use xlink:href='#demiQuadrant'	transform='translate(1,1)	scale(2,2)' />		
-		<use xlink:href='#demiQuadrant'	transform='translate(3,1)	scale(1,2)' />
+		<use 	xlink:href='#demiQuadrant'	
+				transform='translate(0,0)	scale(1,1)'
+				fill='blue' />
+		<use 	xlink:href='#demiQuadrant'	
+				transform='translate(1,0)	scale(2,1)'
+				fill='white' />
+		<use 	xlink:href='#demiQuadrant'	
+				transform='translate(3,0)	scale(1,1)' 
+				fill='blue' />
 
-		<use xlink:href='#demiQuadrant'	transform='translate(0,3)	scale(1,1)' />
-		<use xlink:href='#demiQuadrant'	transform='translate(1,3)	scale(2,1)' />
-		<use xlink:href='#demiQuadrant'	transform='translate(3,3)	scale(1,1)' />
+
+
+		<use 	xlink:href='#demiQuadrant'	
+				transform='translate(0,1)	scale(1,2)' 
+				fill='white' />
+		<use 	xlink:href='#demiQuadrant'	
+				transform='translate(1,1)	scale(2,2)' 
+				fill='blue' />		
+		<use 	xlink:href='#demiQuadrant'	
+				transform='translate(3,1)	scale(1,2)' 
+				fill='white' />
+
+
+
+		<use 	xlink:href='#demiQuadrant'	
+				transform='translate(0,3)	scale(1,1)' 
+				fill='blue' />
+		<use 	xlink:href='#demiQuadrant'	
+				transform='translate(1,3)	scale(2,1)' 
+				fill='white' />
+		<use 	xlink:href='#demiQuadrant'	
+				transform='translate(3,3)	scale(1,1)' 
+				fill='blue' />
+				
 	</g>
-
+	
+	
 </defs>
 
 <use id='actual' xlink:href='#composite' />

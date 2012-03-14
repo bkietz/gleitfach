@@ -11,11 +11,10 @@ gleitfach © Ben Kietzman, 2011
  * gleitfach is a barebones HTML editing system.
  * (German for 'sliding box' - rhymes with kite-Bach)
  *****************************/
-gleitfach = {};
+gleitfach = {
 
 
-
-gleitfach.init = function(startingParent){
+init: function(startingParent){
 if($(startingParent).addClass('gleitfach_EditorParent').length){
 	
 /*****************************
@@ -27,10 +26,9 @@ if($(startingParent).addClass('gleitfach_EditorParent').length){
   gleitfach.child	= '.gleitfach_EditorParent	>*';
   gleitfach.image	= '.gleitfach_EditorParent	>div>img';
   gleitfach.text	= '.gleitfach_EditorParent	>div[contenteditable=true]';
-  gleitfach.demis	= $('<div/>').load('images/demiQuadrants.svg');
+  gleitfach.overlayEl= gleitfach.overlayInit();
   gleitfach.menu	= $('<div/>').css('position','absolute')
 								 .load('images/popAroundMenu.svg');
-  gleitfach.current = $(gleitfach.parent)[0];
 
 }
 else return;
@@ -299,13 +297,13 @@ $(document)
 	
  });
 //click(1)
-
+},
 
 
 /***************************
  * helper functions:
  ***************************/
-gleitfach.src = function(src,srcDimensions){
+src: function(src,srcDimensions){
 // auto-create a gleitfach with an image in it
 
 var generateDiv = function(size){	
@@ -348,22 +346,17 @@ if(srcDimensions == undefined) {
 				});//load
 	 return ret;	}//if
 else return generateDiv(srcDimensions);
-};//gleitfach.src()
+},//gleitfach.src()
 
 
 
-gleitfach.txt = function(txt,txtDimensions){
+txt: function(txt,txtDimensions){
 // auto-create a gleitfach with a text editability in it
 
 if(txtDimensions == undefined) {
 	var l = Math.floor(Math.sqrt(txt.length)*10);
-	var txtDimensions = {height:Math.max(100,l),width:Math.max(100,l)};
-}
-
-
-
-
-
+	var txtDimensions = {height:Math.max(100,l),width:Math.max(100,l)};	}
+	
 /*****************************
  *  This method is chainable-
  *  it returns a jQuery to the
@@ -392,36 +385,38 @@ return $("<div />")
 	})//css
   .html(txt);
   
-  
-};
+},//gleitfach.txt()
 
 
 
-gleitfach.demiQuadrantOverlay = function(element){
+
+
+overlay: function(element){
 	
-	gleitfach.demis
-		.appendTo('body')
+	gleitfach.overlayEl
+		.show()
+		.detach().appendTo('body')
 		.offset(  $(element).offset()  )
 		.width(   $(element).width()   )
 		.height(  $(element).height()  )
-		.find('svg')
-		.offset(  $(element).offset()  )
-		.find('use#actual')
-		.attr({	opacity:	0.4,
-				transform:'scale('+	$(element).width()/4
-							  +','+	$(element).height()/4	+')'
-			});
-
-	// this should be put in a stylesheet somewhere...
-	gleitfach.demis.find('#composite>use:odd [xlink:href="#demiQuadrant"][transform]').attr('fill','white');
-	gleitfach.demis.find('#composite>use:even[xlink:href="#demiQuadrant"][transform]').attr('fill','blue');
 	
-};	 
+},
 
 
 
-};//gleitfach.init
 
+overlayInit: function(){
+
+	return $('<div/>')	.appendTo('body')
+						.attr('id','gleitfach_overlay_root')
+						.append('<div/><div/><div/><div/><div/><div/><div/><div/>')//8
+						.hide()
+						.on('click',':eq(0)',
+								function(e){console.log(e.target,e)}
+						);
+},
+
+};//gleitfach
 
 
 
