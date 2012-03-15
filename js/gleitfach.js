@@ -25,28 +25,49 @@ if($(startingParent).addClass('gleitfach_EditorParent').length){
   gleitfach.parent	= '.gleitfach_EditorParent';
   gleitfach.child	= '.gleitfach_EditorParent	>*';
   gleitfach.image	= '.gleitfach_EditorParent	>div>img';
-  gleitfach.text	= '.gleitfach_EditorParent	>div[contenteditable=true]';
-  gleitfach.overlayEl= gleitfach.overlayInit();
-  gleitfach.menu	= $('<div/>').css('position','absolute')
-								 .load('images/popAroundMenu.svg');
-
+  gleitfach.text	= '.gleitfach_EditorParent	>div[contenteditable]';
+  gleitfach.overlayEl	= gleitfach.overlayInit();
+  gleitfach.menu		= gleitfach.menuInit();
+  
 }
 else return;
 
 
 
+/***************************
+ * OVERLAY an element by holding
+ * shift and moving the mouse over it
+ ***************************/
+ $(document).on('mousemove',gleitfach.child,function(e){
+	if(e.shiftKey && !e.ctrlKey && !e.altKey); else return;
+	gleitfach.overlay(this);
+ });
+ //S-mousemove
+
+
+
+/***************************
+ * Open pop-around MENU
+ * @ the mouse with middleclick
+ ***************************/
+ $(document).on('click',function(e){
+	 if(e.button==1 && !e.shiftKey && !e.ctrlKey && !e.altKey); else return;
+	 e.preventDefault();
+	 e.stopPropagation();
+	 $(gleitfach.menu).show().offset({left:e.pageX-100,top:e.pageY-100});
+ });
+ //click(1)
+
+
+
 /*****************************
- * REPOSITION an element by
- * holding down no metakeys 
- * during a drag
+ * REPOSITION an element 
  * 	The element will track with the mouse
  *****************************/
 $(gleitfach.child)
   .drag({	  
       viv:[
-		function(e){return !e.shiftKey},
-		function(e){return !e.ctrlKey},
-		function(e){return !e.altKey}
+   		function(e){return (e.gleitfachDragMode=='re-position')},
 		],//viv
 
 	  pre:function(e,c){
@@ -64,22 +85,18 @@ $(gleitfach.child)
 		},//inter
 
   });
-//drag
+//drag-reposition
 
 
 
 /*****************************
- * CROP the an element by
- * holding down only ctrl
- * during a drag
- * 		The lower right corner will track with the mouse
+ * CROP the an element
+ *  The nearest corner will track with the mouse
  *****************************/
 $(gleitfach.child)
   .drag({
       viv:[
-		function(e){return !e.shiftKey},
-		function(e){return  e.ctrlKey},
-		function(e){return !e.altKey}
+        function(e){return (e.gleitfachDragMode=='re-size')},
 		],//viv
 
 	  pre:function(e,c){
@@ -94,10 +111,46 @@ $(gleitfach.child)
 		},//inter
 
   });
-//C-drag
+//drag-resize
   
-  
-  
+
+
+/***************************
+ * Now implement the IMAGE functionality
+ * (so that the image position remains
+ *  absolute even when TL is being cropped) 
+ ***************************/
+ $(gleitfach.child)//+'.gleitfach_img')
+ .drag({
+      viv:[
+        function(e){return (e.gleitfachDragMode=='re-size')},
+		],//viv
+
+	  pre:function(e,c){
+		c._.quadrant =	(e.pageY < $(this).corners('center').y? 'T':'B')+
+						(e.pageX < $(this).corners('center').x? 'L':'R');
+		c._.crop= {	x:parseInt($(this).css('background-position-x')),
+					y:parseInt($(this).css('background-position-y'))	};
+		c._.corner = $(this).corners(c._.quadrant);
+		},//pre
+
+
+	  inter:function(e,c){
+		if(c._.quadrant[0] == 'T')
+			$(this).css('background-position-y',
+				c._.corner.y - e.pageY + c._.crop.y);
+		
+		if(c._.quadrant[1] == 'L')
+			$(this).css('background-position-x',
+				c._.corner.x - e.pageX + c._.crop.x);
+		},//inter
+
+  });//drag-resize
+//drag-resize
+
+
+
+
 /*****************************
  * Raise/lower the gleitfach by
  * holding down only shift 
@@ -122,43 +175,6 @@ $(document)
 //S-mousewheel
   
   
-
-/***************************
- * Now implement the IMAGE functionality
- * (so that the image position remains
- *  absolute even when TL is being cropped) 
- ***************************/
- $(gleitfach.child+'.gleitfach_img')
- .drag({
-      viv:[
-		function(e){return !e.shiftKey},
-		function(e){return  e.ctrlKey},
-		function(e){return !e.altKey}
-		],//viv
-
-	  pre:function(e,c){
-		c._.quadrant =	(e.pageY < $(this).corners('center').y? 'T':'B')+
-						(e.pageX < $(this).corners('center').x? 'L':'R');
-		c._.crop= {	x:parseInt($(this).css('background-position-x')),
-					y:parseInt($(this).css('background-position-y'))	};
-		c._.corner = $(this).corners(c._.quadrant);
-		},//pre
-
-
-	  inter:function(e,c){
-		if(c._.quadrant[0] == 'T')
-			$(this).css('background-position-y',
-				c._.corner.y - e.pageY + c._.crop.y);
-		
-		if(c._.quadrant[1] == 'L')
-			$(this).css('background-position-x',
-				c._.corner.x - e.pageX + c._.crop.x);
-		},//inter
-
-  });//C-drag
-//C-drag
-
-
 
 /***************************
  * instantiate a gleitfach_img 
@@ -200,7 +216,6 @@ $(document)
  * by holding shift and clicking 
  * where you want to start typing
  ***************************/
- $(document).on('mouseover',gleitfach.text,function(e){this.focus();});
  $(document).on('click',gleitfach.parent,function(e){
 	 if(e.shiftKey && !e.ctrlKey && !e.altKey); else return;
 	
@@ -212,7 +227,18 @@ $(document)
 		.height(100).width(200)
 		.focus();
  });
-//S-click
+ //S-click
+ $(document).on({
+	 mouseenter:function(){
+					$(this).attr('contenteditable','true');
+					  this.focus();
+					  },
+	 mouseleave:function(){
+					$(this).attr('contenteditable','false');
+					  this.blur();
+					  },
+	},gleitfach.text);
+ //hover
 
 
 
@@ -247,56 +273,6 @@ $(document)
  });
 //C-e
 
-
-
-/***************************
- * Open pop-around MENU
- * @ the mouse with middleclick
- ***************************/
- $(document).on('click',function(e){
-	 if(e.button==1 && !e.shiftKey && !e.ctrlKey && !e.altKey); else return;
-
-	 e.preventDefault();
-	 e.stopPropagation();
-
-	 gleitfach.menu
-		.appendTo('body')
-		.show()
-		.offset({
-				left:	e.pageX-100,
-				top:	e.pageY-100
-				});
-				
-				
-				//////////////////////
-				// PUT THE MENUS ELSEWHERE!
-				
-				
-	/***************************
-	 * Select a NEW PARENT element
-	 * with double middleclick
-	 ***************************/
-	 gleitfach.menu
-		.find('g>circle')
-		.click(e,function(e){
-			 if(e.button==1 && !e.shiftKey && !e.ctrlKey && !e.altKey); else return;
-
-			 e.preventDefault();
-			 e.stopPropagation();
-
-			 var preMenuTarget = e.data.target;
-			 gleitfach.menu.hide();
-			 			 
-			 $(gleitfach.parent).removeClass(	gleitfach.parent.slice(1)	);
-			 $(preMenuTarget).addClass(			gleitfach.parent.slice(1)	);
-			});
-		
-	 gleitfach.menu
-		.find('g:eq(0)')
-		.click(function(e){console.log('TL',e)});
-	
- });
-//click(1)
 },
 
 
@@ -390,30 +366,90 @@ return $("<div />")
 
 
 
+menuInit: function(){
+	
+	
+				//////////////////////
+				// PUT THE MENUS ELSEWHERE!
+				/*
+				
+	/***************************
+	 * Select a NEW PARENT element
+	 * with double middleclick
+	 ***************************
+	 gleitfach.menu
+		.find('g>circle')
+		.click(e,function(e){
+			 if(e.button==1 && !e.shiftKey && !e.ctrlKey && !e.altKey); else return;
 
+			 e.preventDefault();
+			 e.stopPropagation();
+
+			 var preMenuTarget = e.data.target;
+			 gleitfach.menu.hide();
+			 			 
+			 $(gleitfach.parent).removeClass(	gleitfach.parent.slice(1)	);
+			 $(preMenuTarget).addClass(			gleitfach.parent.slice(1)	);
+			});
+		
+	 gleitfach.menu
+		.find('g:eq(0)')
+		.click(function(e){console.log('TL',e)});
+		*/
+		
+	return $('<div/>')
+				.css('position','absolute')
+				.load('images/popAroundMenu.svg')
+				.appendTo('body')
+				.hide();
+			},
 overlay: function(element){
-	
 	gleitfach.overlayEl
-		.show()
-		.detach().appendTo('body')
-		.offset(  $(element).offset()  )
-		.width(   $(element).width()   )
-		.height(  $(element).height()  )
-	
+		.show().detach().prependTo(element)
+		.css('position','absolute')
+		.offset(  $(element).offset()   )
+		.width(   $(element).width()    )
+		.height(  $(element).height()   );
+	gleitfach.overlaid = $(element)[0];
 },
-
-
-
-
 overlayInit: function(){
-
 	return $('<div/>')	.appendTo('body')
 						.attr('id','gleitfach_overlay_root')
 						.append('<div/><div/><div/><div/><div/><div/><div/><div/>')//8
 						.hide()
-						.on('click',':eq(0)',
-								function(e){console.log(e.target,e)}
-						);
+						.on('mouseleave',function(){$(this).hide()})
+						.on('mousedown',function(e){
+				
+							if( e.target.id == 'gleitfach_overlay_root' )
+								// center
+								e.gleitfachDragMode = 're-position';
+
+							else switch($(e.target).prevAll().length){
+								// corners
+								case 0:
+								case 4:
+								case 2:
+								case 6:
+									e.gleitfachDragMode = 're-size';
+									break;
+									
+								// sides
+								case 5:
+								case 3:
+								case 7:
+								case 1:
+								e.gleitfachDragMode = 're-size';
+									break;
+							};
+
+
+
+							$(gleitfach.overlayEl).hide();
+							$(gleitfach.overlaid).trigger(e);
+							e.preventDefault();
+							e.stopPropagation();
+							return;	
+						});//mousedown
 },
 
 };//gleitfach
