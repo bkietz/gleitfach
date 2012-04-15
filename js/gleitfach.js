@@ -13,24 +13,26 @@ gleitfach © Ben Kietzman, 2011
  *****************************/
 gleitfach = {
 
+//$('<style/>').appendTo('head').text('img { border:5px solid black }')
+
 
 init: function(startingParent){
-if($(startingParent).addClass('gleitfach_EditorParent').length){
+if(startingParent);
+else startingParent = 'body';
+$(startingParent).addClass('gleitfach_EditorParent');
 	
 /*****************************
  * jQuery selectors etc, declared
  * for expedient event binding
  *****************************/
  
-  gleitfach.parent	= '.gleitfach_EditorParent';
-  gleitfach.child	= '.gleitfach_EditorParent	>*';
-  gleitfach.image	= '.gleitfach_EditorParent	>div>img';
-  gleitfach.text	= '.gleitfach_EditorParent	>div[contenteditable]';
-  gleitfach.overlayEl	= gleitfach.overlayInit();
-  gleitfach.menu		= gleitfach.menuInit();
+  gleitfach.parent      = '.gleitfach_EditorParent';
+  gleitfach.child       = '.gleitfach_EditorParent	>*';
+  gleitfach.child_image = '.gleitfach_EditorParent	>div>img.gleitfach_image';
+  gleitfach.text        = '.gleitfach_EditorParent	>div[contenteditable]';
+  gleitfach.overlayEl   = gleitfach.overlayInit();
+  gleitfach.menu        = gleitfach.menuInit();
   
-}
-else return;
 
 
 
@@ -38,11 +40,11 @@ else return;
  * OVERLAY an element by holding
  * shift and moving the mouse over it
  ***************************/
- $(document).on('mousemove',gleitfach.child,function(e){
-	if(e.shiftKey && !e.ctrlKey && !e.altKey); else return;
-	gleitfach.overlay(this);
- });
- //S-mousemove
+$(document).on('mousemove',gleitfach.child,function(e){
+	if( e.shiftKey && !e.ctrlKey && !e.altKey)	gleitfach.overlay(this);
+	if(!e.shiftKey && !e.ctrlKey && !e.altKey)	gleitfach.overlayEl.hide();
+});
+//S-mousemove
 
 
 
@@ -50,13 +52,18 @@ else return;
  * Open pop-around MENU
  * @ the mouse with middleclick
  ***************************/
- $(document).on('click',function(e){
+$(document).on('mousedown',function(e){
 	 if(e.button==1 && !e.shiftKey && !e.ctrlKey && !e.altKey); else return;
+	 
 	 e.preventDefault();
 	 e.stopPropagation();
-	 $(gleitfach.menu).show().offset({left:e.pageX-100,top:e.pageY-100});
- });
- //click(1)
+	 
+	 gleitfach.overlaid = e.target;
+	 $(gleitfach.menu)
+		.detach().appendTo('body').show()
+		.offset({left:e.pageX-100,top:e.pageY-100});
+});
+//click(1)
 
 
 
@@ -105,7 +112,6 @@ $(gleitfach.child)
 		c._.corner = $(this).corners(c._.quadrant);
 		},//pre
 
-
 	  inter:function(e,c){
 		$(this).corners(c._.quadrant,{x:e.pageX,y:e.pageY});
 		},//inter
@@ -120,7 +126,37 @@ $(gleitfach.child)
  * (so that the image position remains
  *  absolute even when TL is being cropped) 
  ***************************/
- $(gleitfach.child)//+'.gleitfach_img')
+$(gleitfach.child_image)
+ .drag({
+      viv:[
+        function(e){return (e.gleitfachDragMode=='re-size')},
+		],//viv
+
+	  pre:function(e,c){
+		console.log(this);
+		c._.quadrant =	(e.pageY < $(this).corners('center').y? 'T':'B')+
+						(e.pageX < $(this).corners('center').x? 'L':'R');
+		c._.crop= {	x:parseInt($(this).chldren().offset().left),
+					y:parseInt($(this).chldren().offset().top)	};
+		c._.corner = $(this).corners(c._.quadrant);
+		},//pre
+
+	  inter:function(e,c){
+		
+		console.log('yo');
+			$(this).children().offset({
+				 top:	(c._.quadrant[0]=='T')?
+							c._.crop.y - e.pageY + c._.corner.y:c._.crop.y,
+				 left:	(c._.quadrant[1]=='L')?
+							c._.crop.x - e.pageX + c._.corner.x:c._.crop.x,
+				});
+	
+		},//inter
+
+  });
+//drag-resize
+/*
+$(gleitfach.child_image)
  .drag({
       viv:[
         function(e){return (e.gleitfachDragMode=='re-size')},
@@ -145,9 +181,9 @@ $(gleitfach.child)
 				c._.corner.x - e.pageX + c._.crop.x);
 		},//inter
 
-  });//drag-resize
+  });
 //drag-resize
-
+*/
 
 
 
@@ -185,10 +221,11 @@ $(document)
  reader.onload = function(e){
 	gleitfach.src(
 		e.target.result
-		.replace('data:base64,',
-				 'data:'
+		 .replace('data:base64,',
+				  'data:'
 					+ e.target.fileType + 
-				 ';base64,'));
+				  ';base64,'),
+		{width:600,height:600});
  };
 
  $('.gleitfach_EditorParent')
@@ -203,7 +240,7 @@ $(document)
 		};//for
 	 }, 
 	preDrop:	function(e){
-//		console.log(e,e.originalEvent.dataTransfer.files,e.originalEvent.dataTransfer.items,e.originalEvent.dataTransfer.items.item());
+		console.log(e,e.originalEvent.dataTransfer.files,e.originalEvent.dataTransfer.items,e.originalEvent.dataTransfer.items.item());
 		return true;
 	 }
  });
@@ -216,18 +253,19 @@ $(document)
  * by holding shift and clicking 
  * where you want to start typing
  ***************************/
- $(document).on('click',gleitfach.parent,function(e){
-	 if(e.shiftKey && !e.ctrlKey && !e.altKey); else return;
+ $(document).on('dblclick',gleitfach.parent,function(e){
+	 if(e.button==0 && e.shiftKey && !e.ctrlKey && !e.altKey); else return;
 	
 	 
 	 $('<div/>')
 		.appendTo(gleitfach.parent)
 		.attr('contenteditable','true')
+		.css('position','absolute')
 		.offset({left:e.pageX,top:e.pageY})
 		.height(100).width(200)
 		.focus();
  });
- //S-click
+ //S-dblclick
  $(document).on({
 	 mouseenter:function(){
 					$(this).attr('contenteditable','true');
@@ -247,7 +285,7 @@ $(document)
  * ctrl and double clicking
  ***************************/
  $(document).on('dblclick',gleitfach.child,function(e){
-	 if(!e.shiftKey && e.ctrlKey && !e.altKey); else return;
+	 if(e.button==0 && e.shiftKey && e.ctrlKey && !e.altKey); else return;
 
 	 e.preventDefault();
 	 e.stopPropagation();
@@ -367,57 +405,44 @@ return $("<div />")
 
 
 menuInit: function(){
-	
-	
-				//////////////////////
-				// PUT THE MENUS ELSEWHERE!
-				/*
-				
-	/***************************
-	 * Select a NEW PARENT element
-	 * with double middleclick
-	 ***************************
-	 gleitfach.menu
-		.find('g>circle')
-		.click(e,function(e){
-			 if(e.button==1 && !e.shiftKey && !e.ctrlKey && !e.altKey); else return;
-
-			 e.preventDefault();
-			 e.stopPropagation();
-
-			 var preMenuTarget = e.data.target;
-			 gleitfach.menu.hide();
-			 			 
-			 $(gleitfach.parent).removeClass(	gleitfach.parent.slice(1)	);
-			 $(preMenuTarget).addClass(			gleitfach.parent.slice(1)	);
-			});
-		
-	 gleitfach.menu
-		.find('g:eq(0)')
-		.click(function(e){console.log('TL',e)});
-		*/
-		
 	return $('<div/>')
 				.css('position','absolute')
 				.load('images/popAroundMenu.svg')
-				.appendTo('body')
+				.attr('id','gleitfach_EditorMenu')
+				.prependTo('body')
+				.mouseleave(function(e){$(this).hide()})
+				.mousedown( function(e){
+					$(gleitfach.menu).hide();
+					e.preventDefault();
+					e.stopPropagation();
+					
+					/***************************
+					 * Select a NEW PARENT element
+					 * with double middleclick
+					 ***************************/
+
+					$(gleitfach.parent  ).removeClass(	gleitfach.parent.slice(1)	);
+					$(gleitfach.overlaid).addClass(		gleitfach.parent.slice(1)	);
+					})
 				.hide();
-			},
+					
+					
+			},//menuInit
 overlay: function(element){
 	gleitfach.overlayEl
-		.show().detach().prependTo(element)
+		.show().detach().appendTo(element)
 		.css('position','absolute')
 		.offset(  $(element).offset()   )
 		.width(   $(element).width()    )
 		.height(  $(element).height()   );
-	gleitfach.overlaid = $(element)[0];
+	gleitfach.overlaid = $(element).blur()[0];
 },
 overlayInit: function(){
-	return $('<div/>')	.appendTo('body')
+	return $('<div/>')	.prependTo('body')
 						.attr('id','gleitfach_overlay_root')
 						.append('<div/><div/><div/><div/><div/><div/><div/><div/>')//8
 						.hide()
-						.on('mouseleave',function(){$(this).hide()})
+						.on('mouseleave',function(){$(this).hide()})//.detach().prependTo('body')})
 						.on('mousedown',function(e){
 				
 							if( e.target.id == 'gleitfach_overlay_root' )
@@ -442,10 +467,8 @@ overlayInit: function(){
 									break;
 							};
 
-
-
-							$(gleitfach.overlayEl).hide();
 							$(gleitfach.overlaid).trigger(e);
+							$(gleitfach.overlayEl).trigger('mouseleave');
 							e.preventDefault();
 							e.stopPropagation();
 							return;	

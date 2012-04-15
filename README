@@ -1,52 +1,83 @@
 gleitfach © Ben Kietzman, 2011
 
-(Creative Commons Attribution-NonCommercial-ShareAlike —
- http://creativecommons.org/licenses/by-nc-sa/3.0
- I'm not opposed to commercial projects using my software
- but I'd like to be told of them first)
-
-
 gleitfach is a barebones HTML editing system.
 (German for 'sliding box' - rhymes with kite-Bach)
 
 
+One selected HTML element's immediate children can be edited in 
+     a variety of ways: reposition, crop, scale, delete...
+     New children can also be created, for example by simply dropping an
+     image into the browser window.
+
+The editor mode in use is determined by a single key press, alá GIMP.
+     Actions within one editor mode are primarily mouse-based.
+
+By selecting different elements for editing, a document of arbitrary
+     complexity can be constructed and modified.
+
+[C-s] saves the webpage without transcription errors. Because .js files
+     will be included in such a save, gleitfach will also be available
+     for subsequent editing of the page. This can be disabled in favor 
+     of saving the resultant HTML content alone, or the user can 
+     compress/encode all libraries, images, etc. and prepend them to 
+     index.html, yielding a monolithic HTML file. (easier to deal with)
+
+========================================================================
+Press {Key} to switch editor modes:
+========================================================================
+
+{d}='DOM Navigation'
+   [click]         Select the clicked element
+   [wheel-down]    Select the wheeled element
+   [wheel-up]      Select the parent of the currently selected element
+   [hover]         Display a border around elements which would be
+                         selected on click, wheel-up, wheel-down
+
+{t}='Translation'
+   [drag]          An element can be dragged to a new position
+
+{s}='Scaling'
+   [drag]          An element can be dragged, scaling it
+   [S-drag]        An element can be dragged, cropping it
+   
+{a}='Anchor'
+   [click]         Generate an empty anchor at click
+
+{n}='New Text'-----Switches to text editing after one action            
+   [click]         Generate a text <div/> at the click
+   [drag]          Generate a text <div/> with corners
+                        at the start and end of the drag
+
+{e}='Edit Text'----Keypresses do not switch modes until [S-Enter]
+   [hover]         Allow the target's content to be edited. 
+   [S-enter]       End text editing mode, revert to 'New Text'
+   [drag&drop]     Drop the selected text into an anchor
+
+{c}='Edit CSS'
+   [hover]         Display style in an editable popup
+   [S-hover]       Stickier popups for easier editing
+   [click]         Menu for other options, pertaining to clicked element
+   [S-click]       Menu for global CSS options
+
+{o}='Alter DOM Order'-----Display numerals indicating the position
+                          of all children in the selected element 
+   [drag]          Interchange the elements at drag start and end
+   [wheel]         Raise/Lower DOM order of the wheeled element
+   [click]         Type in a new DOM position for the clicked element
+   [S-click]       Menu for other options
 
 
 
 
-I want gleitfach to be simple, but very general.
 
-One element is selected as the parent window.
-Its children (immediate children only) may be
-moved/cropped however you like, within constraints
-set by the user. These can include:
-                        -must be fully inside the parent's {LTRU}side
-                        -may not be fully outside the parent's {LTRU}side
-                        -may not be shrunk such that content overflows
-                        -webkit transforms not permitted
 
-The user can also edit CSS styles directly using gleitfach.
-Any element can be given class or id which can be referenced 
-in the page's stylesheet, which is appended to the header.
-The user can edit this using gleitfach. Similarly, the user 
-can edit the javascript context using gleitfach.
-$('<style/>').appendTo('head').text('img { border:5px solid black }')
 
-Children can also be created/deleted within the 
-selected parent. Several methods are available,
-from efficient   {      creating a simple text node,
-                        creating a simple image node,
-                        ...     }
-to general        {     contextual pop-around menus,
-                        type in HTML tag type explicitly ('div','pre', ...),
-                        ...     }.
 
-There are several save modes:
-		-Ctrl-s should save the webpage with *no* transcription 
-			errors and *no* key-event overriding in code.
-		-By default, the editor will be contained in the saved page,
-			thereby allowing subsequent editing of the page. This can
-			be disabled in favor of saving the resultant HTML content alone.
-		-The user can aslo choose to compress/encode all libraries, images, 
-			etc. and prepend them to index.html, yielding a monolithic HTML file.
+
+
+
+
+
+
+
 
