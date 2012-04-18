@@ -1,15 +1,50 @@
 /*****************************
-
-gleitfach © Ben Kietzman, 2011
-
-(Creative Commons Attribution-NonCommercial-ShareAlike —
- http://creativecommons.org/licenses/by-nc-sa/3.0
- I'm not opposed to commercial projects using my software
- but I'd like to be told of them first)
-
-
+ * gleitfach © Ben Kietzman, 2011
+ * 
  * gleitfach is a barebones HTML editing system.
- * (German for 'sliding box' - rhymes with kite-Bach)
+
+
+
+{d}='DOM Navigation'
+   [click]         Select the clicked element
+   [wheel-down]    Select the wheeled element
+   [wheel-up]      Select the parent of the currently selected element
+   [hover]         Display a border around elements which would be
+                         selected on click, wheel-up, wheel-down
+
+{t}='Translation'
+   [drag]          An element can be dragged to a new position
+
+{s}='Scaling'
+   [drag]          An element can be dragged, scaling it
+   [S-drag]        An element can be dragged, cropping it
+   
+{a}='Anchor'
+   [click]         Generate an empty anchor at click
+
+{n}='New Text'-----Switches to text editing after one action            
+   [click]         Generate a text <div/> at the click
+   [drag]          Generate a text <div/> with corners
+                        at the start and end of the drag
+
+{e}='Edit Text'----Keypresses do not switch modes until [S-Enter]
+   [hover]         Allow the target's content to be edited. 
+   [S-enter]       End text editing mode, revert to 'New Text'
+   [drag&drop]     Drop the selected text into an anchor
+
+{c}='Edit CSS'
+   [hover]         Display style in an editable popup
+   [S-hover]       Stickier popups for easier editing
+   [click]         Menu for other options, pertaining to clicked element
+   [S-click]       Menu for global CSS options
+
+{o}='Alter DOM Order'-----Display numerals indicating the position
+                          of all children in the selected element 
+   [drag]          Interchange the elements at drag start and end
+   [wheel]         Raise/Lower DOM order of the wheeled element
+   [click]         Type in a new DOM position for the clicked element
+   [S-click]       Menu for other options
+
  *****************************/
 gleitfach = {
 
@@ -17,44 +52,174 @@ gleitfach = {
 
 
 init: function(startingParent){
-if(startingParent);
-else startingParent = 'body';
-$(startingParent).addClass('gleitfach_EditorParent');
+if( 	$(startingParent).addClass('gleitfach_selected').length);
+else 	        $('body').addClass('gleitfach_selected');
+
 	
 /*****************************
  * jQuery selectors etc, declared
  * for expedient event binding
  *****************************/
  
-  gleitfach.parent      = '.gleitfach_EditorParent';
-  gleitfach.child       = '.gleitfach_EditorParent	>*';
-  gleitfach.child_image = '.gleitfach_EditorParent	>div>img.gleitfach_image';
-  gleitfach.text        = '.gleitfach_EditorParent	>div[contenteditable]';
+  gleitfach.parent      = '.gleitfach_selected';
+  gleitfach.child_image = '.gleitfach_selected	>div>img.gleitfach_image';
+  gleitfach.text        = '.gleitfach_selected	>div[contenteditable]';
   gleitfach.overlayEl   = gleitfach.overlayInit();
   gleitfach.menu        = gleitfach.menuInit();
+  gleitfach.current_mode = 'gleitfach_mode_inactive';
+
+
+/***************************
+ * mode switching:
+ * 
+ * A keypress event determines
+ * the editor mode, which in 
+ * turn determines which events
+ * are bound to children of 
+ * gleitfach_selected
+ * 
+ ***************************/
+$(document).on('keypress',function(e){
+
+  switch( e.charCode ){
+
+    case 105: //'i' -> inactive
+	var new_mode = 'gleitfach_mode_inactive';
+	break;
+	
+    case 116: //'t' -> translate
+	var new_mode = 'gleitfach_mode_translate';
+	break;
+		
+    case 115: //'s' -> scale
+	var new_mode = 'gleitfach_mode_scale';
+	break;
+
+    case 111: //'o' -> scale
+	var new_mode = 'gleitfach_mode_reorder';
+	break;
+
+    case 110: //'n' -> new text
+	var new_mode = 'gleitfach_mode_new_text';
+	break;
+
+    case 101: //'e' -> edit text
+	var new_mode = 'gleitfach_mode_edit_text';
+	break;
+	
+    case 99:  //'c' -> edit CSS
+	var new_mode = 'gleitfach_mode_edit_css';
+	break;
+	
+    case 114:  //'r' -> delete
+	var new_mode = 'gleitfach_mode_delete';
+	break;
+	
+    case 100: //'d' -> navigate
+	var new_mode = 'gleitfach_mode_navigate';
+	break;
+
+    default:
+        return;
+  };//switch
+
+//switch to the new mode
+$('.gleitfach_selected')
+	.removeClass(gleitfach.current_mode)
+	.addClass(new_mode);
+gleitfach.current_mode = new_mode;
+
+});
+//keypress-modeswitch
+
+
+
+/*****************************
+ * TRANSLATE mode:
+ * 
+ * The element will track 
+ * with the mouse during drag.
+ * 
+ *****************************/
+$(document).on('mouseenter','.gleitfach_mode_translate > *',function(e){// :not(.gleitfach_actual_translate)
+	gleitfach.overlay(this);
+});
+//hover-translate
+
+$('.gleitfach_actual_translate')
+  .drag({	  
+
+	pre:function(e,c){
+		c._ = {
+			mouse:	{x:e.pageX,	y:e.pageY,},
+			corner:	$(this).offset(),
+			};//c._
+		},//pre
+
+	inter:function(e,c){
+		$(this).offset({
+			top: (c._.corner.top  + e.pageY-c._.mouse.y),
+			left:(c._.corner.left + e.pageX-c._.mouse.x)
+			});//offset
+		},//inter
+
+	post:function(){
+		$(this).removeClass('gleitfach_actual_translate');
+		},//post
+
+  });
+//drag-translate
+
+
+
+/***************************
+ * SCALE mode:
+ * 
+ * Where the drag starts within 
+ * the element determines which
+ * corner will track with the mouse.
+ * 
+ ***************************/
+$(document).on('mouseenter','.gleitfach_mode_scale > *',function(e){
+	gleitfach.overlay(this);
+});
+//hover-scale
+
+$('.gleitfach_actual_scale')
+  .drag({
+
+	pre:  function(e,c){
+		c._.quadrant = $(this).data('gleitfach_overlay_corner');
+		c._.corner   = $(this).corners(c._.quadrant);
+		},//pre
+
+	inter:function(e,c){
+		$(this).corners(c._.quadrant,{x:e.pageX,y:e.pageY});
+		
+		// for cropping, I need to either store all the 
+		// children's offsets or wrap them in a temporary 
+		// <div/> to hold the offset
+		
+		},//inter
+
+	post: function(){
+		$(this)	.removeClass('gleitfach_actual_scale')
+			.removeData( 'gleitfach_overlay_corner');
+		},//post
+
+  });
+//drag-scale
   
 
-
-
 /***************************
- * OVERLAY an element by holding
- * shift and moving the mouse over it
- ***************************/
-$(document).on('mousemove',gleitfach.child,function(e){
-	if( e.shiftKey && !e.ctrlKey && !e.altKey)	gleitfach.overlay(this);
-	if(!e.shiftKey && !e.ctrlKey && !e.altKey)	gleitfach.overlayEl.hide();
-});
-//S-mousemove
-
-
-
-/***************************
+ * CSS editing mode:
+ * 
  * Open pop-around MENU
- * @ the mouse with middleclick
+ * @ the mouse with a click
+ * 
  ***************************/
-$(document).on('mousedown',function(e){
-	 if(e.button==1 && !e.shiftKey && !e.ctrlKey && !e.altKey); else return;
-	 
+$(document).on('mousedown','.gleitfach_mode_edit_css > *',function(e){
+ 
 	 e.preventDefault();
 	 e.stopPropagation();
 	 
@@ -62,63 +227,12 @@ $(document).on('mousedown',function(e){
 	 $(gleitfach.menu)
 		.detach().appendTo('body').show()
 		.offset({left:e.pageX-100,top:e.pageY-100});
+	
 });
-//click(1)
+//click
 
 
 
-/*****************************
- * REPOSITION an element 
- * 	The element will track with the mouse
- *****************************/
-$(gleitfach.child)
-  .drag({	  
-      viv:[
-   		function(e){return (e.gleitfachDragMode=='re-position')},
-		],//viv
-
-	  pre:function(e,c){
-		c._ = {
-		    mouse:	{x:e.pageX,	y:e.pageY,},
-			corner:	$(this).offset(),
-			};//c._
-		},//pre
-
-      inter:function(e,c){
-		$(this).offset({
-			top: (c._.corner.top  + e.pageY-c._.mouse.y),
-			left:(c._.corner.left + e.pageX-c._.mouse.x)
-			});//offset
-		},//inter
-
-  });
-//drag-reposition
-
-
-
-/*****************************
- * CROP the an element
- *  The nearest corner will track with the mouse
- *****************************/
-$(gleitfach.child)
-  .drag({
-      viv:[
-        function(e){return (e.gleitfachDragMode=='re-size')},
-		],//viv
-
-	  pre:function(e,c){
-		c._.quadrant =	(e.pageY < $(this).corners('center').y? 'T':'B')+
-						(e.pageX < $(this).corners('center').x? 'L':'R');
-		c._.corner = $(this).corners(c._.quadrant);
-		},//pre
-
-	  inter:function(e,c){
-		$(this).corners(c._.quadrant,{x:e.pageX,y:e.pageY});
-		},//inter
-
-  });
-//drag-resize
-  
 
 
 /***************************
@@ -126,10 +240,11 @@ $(gleitfach.child)
  * (so that the image position remains
  *  absolute even when TL is being cropped) 
  ***************************/
+/*
 $(gleitfach.child_image)
  .drag({
       viv:[
-        function(e){return (e.gleitfachDragMode=='re-size')},
+        function(e){return (e.data.gleitfachDragMode=='re-size')},
 		],//viv
 
 	  pre:function(e,c){
@@ -154,12 +269,13 @@ $(gleitfach.child_image)
 		},//inter
 
   });
+  * */
 //drag-resize
 /*
 $(gleitfach.child_image)
  .drag({
       viv:[
-        function(e){return (e.gleitfachDragMode=='re-size')},
+        function(e){return (e.data.gleitfachDragMode=='re-size')},
 		],//viv
 
 	  pre:function(e,c){
@@ -182,21 +298,22 @@ $(gleitfach.child_image)
 		},//inter
 
   });
+  
 //drag-resize
 */
 
 
 
 /*****************************
- * Raise/lower the gleitfach by
- * holding down only shift 
- * during mousewheeling
+ * RE-ORDER mode:
+ * 
+ * Raise/lower the gleitfach in
+ * DOM order with the mousewheel
+ * 
  *****************************/
 $(document)
-  .on('mousewheel',gleitfach.child,
+  .on('mousewheel','.gleitfach_mode_reorder > *',
 	function(e){
-		if( e.shiftKey && !e.ctrlKey && !e.altKey);
-		else return;
 
 		e.stopPropagation();
 		e.preventDefault();
@@ -209,8 +326,8 @@ $(document)
 		
   });//S-mousewheel
 //S-mousewheel
-  
-  
+
+
 
 /***************************
  * instantiate a gleitfach_img 
@@ -228,7 +345,7 @@ $(document)
 		{width:600,height:600});
  };
 
- $('.gleitfach_EditorParent')
+ $('.gleitfach_selected')
  .drop({
 	postDrop:	function(e){
 		var dropped_files = e.originalEvent.dataTransfer.files;
@@ -249,23 +366,24 @@ $(document)
 
 
 /***************************
+ * NEW TEXT mode:
+ * 
  * open a TEXT editable <div/> 
- * by holding shift and clicking 
- * where you want to start typing
+ * by clicking where you want 
+ * to start typing
+ * 
  ***************************/
- $(document).on('dblclick',gleitfach.parent,function(e){
-	 if(e.button==0 && e.shiftKey && !e.ctrlKey && !e.altKey); else return;
-	
+ $(document).on('click','.gleitfach_mode_new_text',function(e){
 	 
 	 $('<div/>')
-		.appendTo(gleitfach.parent)
+		.appendTo('.gleitfach_selected')
 		.attr('contenteditable','true')
 		.css('position','absolute')
 		.offset({left:e.pageX,top:e.pageY})
 		.height(100).width(200)
 		.focus();
  });
- //S-dblclick
+ /*
  $(document).on({
 	 mouseenter:function(){
 					$(this).attr('contenteditable','true');
@@ -277,39 +395,27 @@ $(document)
 					  },
 	},gleitfach.text);
  //hover
-
+*/
 
 
 /***************************
- * DELETE an element by holding
- * ctrl and double clicking
+ * DELETE mode:
+ * 
+ * dblclick deletes,
+ * hover displays a border
  ***************************/
- $(document).on('dblclick',gleitfach.child,function(e){
-	 if(e.button==0 && e.shiftKey && e.ctrlKey && !e.altKey); else return;
+ $(document).on('dblclick','.gleitfach_mode_delete > *',function(e){
 
 	 e.preventDefault();
 	 e.stopPropagation();
 
 	 $(this).remove();
+
  });
-//C-dblclick
+//dblclick
 
 
 
-/***************************
- * TOGGLE gleitfach activity
- * with Ctrl-E
- ***************************/
- $(document).on('keypress',function(e){
-	 if(e.charCode==5 && !e.shiftKey && e.ctrlKey && !e.altKey); else return;
-
-	 e.preventDefault();
-	 e.stopPropagation();
-
-	 $(	'.gleitfach_EditorParent , .gleitfach_EditorParent_inactive').toggleClass
-		('gleitfach_EditorParent', 'gleitfach_EditorParent_inactive');
- });
-//C-e
 
 },
 
@@ -322,7 +428,7 @@ src: function(src,srcDimensions){
 
 var generateDiv = function(size){	
 	return $("<div />")
-	.appendTo(gleitfach.parent)
+	.appendTo('.gleitfach_selected')
 	.addClass('gleitfach_img')
 	.css({
 
@@ -377,7 +483,7 @@ if(txtDimensions == undefined) {
  *  fresh gleitfach:
  *****************************/
 return $("<div />")
-  .appendTo(gleitfach.parent)
+  .appendTo('.gleitfach_selected')
   .addClass('gleitfach_txt')
   .attr({
       contenteditable : 'true',
@@ -421,58 +527,50 @@ menuInit: function(){
 					 * with double middleclick
 					 ***************************/
 
-					$(gleitfach.parent  ).removeClass(	gleitfach.parent.slice(1)	);
-					$(gleitfach.overlaid).addClass(		gleitfach.parent.slice(1)	);
+					$('.gleitfach_selected')	.removeClass(	'gleitfach_selected'	);
+					$(gleitfach.overlaid)   	.addClass(   	'gleitfach_selected'	);
 					})
 				.hide();
 					
 					
 			},//menuInit
 overlay: function(element){
+	gleitfach.overlaid = $(element).blur()[0];
 	gleitfach.overlayEl
 		.show().detach().appendTo(element)
 		.css('position','absolute')
 		.offset(  $(element).offset()   )
 		.width(   $(element).width()    )
-		.height(  $(element).height()   );
-	gleitfach.overlaid = $(element).blur()[0];
+		.height(  $(element).height()   )
+		.focus();
 },
 overlayInit: function(){
-	return $('<div/>')	.prependTo('body')
-						.attr('id','gleitfach_overlay_root')
-						.append('<div/><div/><div/><div/><div/><div/><div/><div/>')//8
-						.hide()
-						.on('mouseleave',function(){$(this).hide()})//.detach().prependTo('body')})
-						.on('mousedown',function(e){
-				
-							if( e.target.id == 'gleitfach_overlay_root' )
-								// center
-								e.gleitfachDragMode = 're-position';
 
-							else switch($(e.target).prevAll().length){
-								// corners
-								case 0:
-								case 4:
-								case 2:
-								case 6:
-									e.gleitfachDragMode = 're-size';
-									break;
-									
-								// sides
-								case 5:
-								case 3:
-								case 7:
-								case 1:
-								e.gleitfachDragMode = 're-size';
-									break;
-							};
+return $('<div/>')
+	.prependTo('body')
+	.attr('id','gleitfach_overlay_root')
+	.append('<div/><div/><div/><div/><div/><div/><div/><div/>')//8
+	.hide()
+	.on('mouseleave',function(){$(this).hide()})
+	.on('mousedown',function(e){
 
-							$(gleitfach.overlaid).trigger(e);
-							$(gleitfach.overlayEl).trigger('mouseleave');
-							e.preventDefault();
-							e.stopPropagation();
-							return;	
-						});//mousedown
+		if( e.target.id == 'gleitfach_overlay_root' )
+			// center -> translate
+			$(gleitfach.overlaid).addClass('gleitfach_actual_translate');
+
+		else	// side or corner -> scale
+			$(gleitfach.overlaid)
+				.addClass('gleitfach_actual_scale')
+				.data('gleitfach_overlay_corner',
+					['TL','B ','BL',' L','TR','T ','BR',' R']
+						[$(e.target).prevAll().length]	);
+
+		$(gleitfach.overlaid).trigger(e);
+		$(gleitfach.overlayEl).trigger('mouseleave');
+		e.preventDefault();
+		e.stopPropagation();
+		return;	
+	});//mousedown
 },
 
 };//gleitfach
