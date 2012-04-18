@@ -61,7 +61,6 @@ else 	        $('body').addClass('gleitfach_selected');
  * for expedient event binding
  *****************************/
  
-  gleitfach.parent      = '.gleitfach_selected';
   gleitfach.child_image = '.gleitfach_selected	>div>img.gleitfach_image';
   gleitfach.text        = '.gleitfach_selected	>div[contenteditable]';
   gleitfach.overlayEl   = gleitfach.overlayInit();
@@ -141,15 +140,17 @@ gleitfach.current_mode = new_mode;
  * with the mouse during drag.
  * 
  *****************************/
-$(document).on('mouseenter','.gleitfach_mode_translate > *',function(e){// :not(.gleitfach_actual_translate)
-	gleitfach.overlay(this);
-});
+$(document).on( 'mouseenter',
+		'.gleitfach_mode_translate > :not(.gleitfach_actual_translate)',
+		function(e){
+			gleitfach.overlay(this);
+		});
 //hover-translate
 
 $('.gleitfach_actual_translate')
   .drag({	  
 
-	pre:function(e,c){
+	pre:  function(e,c){
 		c._ = {
 			mouse:	{x:e.pageX,	y:e.pageY,},
 			corner:	$(this).offset(),
@@ -163,7 +164,7 @@ $('.gleitfach_actual_translate')
 			});//offset
 		},//inter
 
-	post:function(){
+	post: function(){
 		$(this).removeClass('gleitfach_actual_translate');
 		},//post
 
@@ -180,9 +181,11 @@ $('.gleitfach_actual_translate')
  * corner will track with the mouse.
  * 
  ***************************/
-$(document).on('mouseenter','.gleitfach_mode_scale > *',function(e){
-	gleitfach.overlay(this);
-});
+$(document).on( 'mouseenter',
+		'.gleitfach_mode_scale > :not(.gleitfach_actual_scale)',
+		function(e){
+			gleitfach.overlay(this);
+		});
 //hover-scale
 
 $('.gleitfach_actual_scale')
@@ -190,26 +193,46 @@ $('.gleitfach_actual_scale')
 
 	pre:  function(e,c){
 		c._.quadrant = $(this).data('gleitfach_overlay_corner');
-		c._.corner   = $(this).corners(c._.quadrant);
+		c._.wrapper  = $(this).wrapInner('<div/>').children()[0];
+		c._.offset   = $(c._.wrapper).offset();
 		},//pre
 
 	inter:function(e,c){
 		$(this).corners(c._.quadrant,{x:e.pageX,y:e.pageY});
 		
 		// for cropping, I need to either store all the 
-		// children's offsets or wrap them in a temporary 
-		// <div/> to hold the offset
+		// children's offsets or wrapInner them in a 
+		// temporary <div/> to hold the offset
 		
+		console.log('left',$(this).offset().left,'top',$(this).offset().top);
+		
+		if(e.shiftKey) return;
+		$(c._.wrapper).offset(c._.offset);
 		},//inter
 
-	post: function(){
+	post: function(e,c){
+		var w = $(c._.wrapper).offset();
+		var t = $(this).offset();
+		$(c._.wrapper).contents().unwrap();
+
 		$(this)	.removeClass('gleitfach_actual_scale')
 			.removeData( 'gleitfach_overlay_corner');
+			
+		if(e.shiftKey) return;
+		$(this) .contents()
+			.offset(function(i,v){return {
+				top: v.top  + w.top  - t.top,
+				left:v.left + w.left - t.left
+				}});
+				
 		},//post
 
   });
 //drag-scale
   
+
+
+
 
 /***************************
  * CSS editing mode:
@@ -235,75 +258,6 @@ $(document).on('mousedown','.gleitfach_mode_edit_css > *',function(e){
 
 
 
-/***************************
- * Now implement the IMAGE functionality
- * (so that the image position remains
- *  absolute even when TL is being cropped) 
- ***************************/
-/*
-$(gleitfach.child_image)
- .drag({
-      viv:[
-        function(e){return (e.data.gleitfachDragMode=='re-size')},
-		],//viv
-
-	  pre:function(e,c){
-		console.log(this);
-		c._.quadrant =	(e.pageY < $(this).corners('center').y? 'T':'B')+
-						(e.pageX < $(this).corners('center').x? 'L':'R');
-		c._.crop= {	x:parseInt($(this).chldren().offset().left),
-					y:parseInt($(this).chldren().offset().top)	};
-		c._.corner = $(this).corners(c._.quadrant);
-		},//pre
-
-	  inter:function(e,c){
-		
-		console.log('yo');
-			$(this).children().offset({
-				 top:	(c._.quadrant[0]=='T')?
-							c._.crop.y - e.pageY + c._.corner.y:c._.crop.y,
-				 left:	(c._.quadrant[1]=='L')?
-							c._.crop.x - e.pageX + c._.corner.x:c._.crop.x,
-				});
-	
-		},//inter
-
-  });
-  * */
-//drag-resize
-/*
-$(gleitfach.child_image)
- .drag({
-      viv:[
-        function(e){return (e.data.gleitfachDragMode=='re-size')},
-		],//viv
-
-	  pre:function(e,c){
-		c._.quadrant =	(e.pageY < $(this).corners('center').y? 'T':'B')+
-						(e.pageX < $(this).corners('center').x? 'L':'R');
-		c._.crop= {	x:parseInt($(this).css('background-position-x')),
-					y:parseInt($(this).css('background-position-y'))	};
-		c._.corner = $(this).corners(c._.quadrant);
-		},//pre
-
-
-	  inter:function(e,c){
-		if(c._.quadrant[0] == 'T')
-			$(this).css('background-position-y',
-				c._.corner.y - e.pageY + c._.crop.y);
-		
-		if(c._.quadrant[1] == 'L')
-			$(this).css('background-position-x',
-				c._.corner.x - e.pageX + c._.crop.x);
-		},//inter
-
-  });
-  
-//drag-resize
-*/
-
-
-
 /*****************************
  * RE-ORDER mode:
  * 
@@ -312,20 +266,22 @@ $(gleitfach.child_image)
  * 
  *****************************/
 $(document)
-  .on('mousewheel','.gleitfach_mode_reorder > *',
-	function(e){
+.on('mousewheel','.gleitfach_mode_reorder > *',
+    function(e){
 
-		e.stopPropagation();
-		e.preventDefault();
+	e.stopPropagation();
+	e.preventDefault();
 
-		if(e.originalEvent.wheelDelta>0 && $(this).next().length)
-			$(this).next().after($(this).detach());
+	if(e.originalEvent.wheelDelta>0 && $(this).next().length)
+		$(this).next().after($(this).detach());
 
-		if(e.originalEvent.wheelDelta<0 && $(this).prev().length)
-			$(this).prev().before($(this).detach());
-		
-  });//S-mousewheel
-//S-mousewheel
+	if(e.originalEvent.wheelDelta<0 && $(this).prev().length)
+		$(this).prev().before($(this).detach());
+	
+	});
+//mousewheel
+
+
 
 
 
@@ -348,6 +304,8 @@ $(document)
  $('.gleitfach_selected')
  .drop({
 	postDrop:	function(e){
+		console.log('postDrop',e,e.originalEvent.dataTransfer.files,e.originalEvent.dataTransfer.items,e.originalEvent.dataTransfer.items.item());
+
 		var dropped_files = e.originalEvent.dataTransfer.files;
 	
 		for(var i=0,f; f=e.originalEvent.dataTransfer.files[i]; ++i){
@@ -357,11 +315,13 @@ $(document)
 		};//for
 	 }, 
 	preDrop:	function(e){
-		console.log(e,e.originalEvent.dataTransfer.files,e.originalEvent.dataTransfer.items,e.originalEvent.dataTransfer.items.item());
+		console.log('preDrop',e,e.originalEvent.dataTransfer.files,e.originalEvent.dataTransfer.items,e.originalEvent.dataTransfer.items.item());
 		return true;
 	 }
  });
 //drop
+
+
 
 
 
@@ -375,7 +335,7 @@ $(document)
  ***************************/
  $(document).on('click','.gleitfach_mode_new_text',function(e){
 	 
-	 $('<div/>')
+	$('<div/>')
 		.appendTo('.gleitfach_selected')
 		.attr('contenteditable','true')
 		.css('position','absolute')
@@ -398,6 +358,9 @@ $(document)
 */
 
 
+
+
+
 /***************************
  * DELETE mode:
  * 
@@ -415,9 +378,10 @@ $(document)
 //dblclick
 
 
-
-
 },
+
+
+
 
 
 /***************************
@@ -511,29 +475,30 @@ return $("<div />")
 
 
 menuInit: function(){
-	return $('<div/>')
-				.css('position','absolute')
-				.load('images/popAroundMenu.svg')
-				.attr('id','gleitfach_EditorMenu')
-				.prependTo('body')
-				.mouseleave(function(e){$(this).hide()})
-				.mousedown( function(e){
-					$(gleitfach.menu).hide();
-					e.preventDefault();
-					e.stopPropagation();
-					
-					/***************************
-					 * Select a NEW PARENT element
-					 * with double middleclick
-					 ***************************/
 
-					$('.gleitfach_selected')	.removeClass(	'gleitfach_selected'	);
-					$(gleitfach.overlaid)   	.addClass(   	'gleitfach_selected'	);
-					})
-				.hide();
-					
-					
-			},//menuInit
+return $('<div/>')
+	.css('position','absolute')
+	.load('images/popAroundMenu.svg')
+	.attr('id','gleitfach_EditorMenu')
+	.prependTo('body')
+	.mouseleave(function(e){$(this).hide()})
+	.mousedown( function(e){
+		$(gleitfach.menu).hide();
+		e.preventDefault();
+		e.stopPropagation();
+		
+		/***************************
+		 * Select a NEW PARENT element
+		 * with double middleclick
+		 ***************************/
+
+		$('.gleitfach_selected')	.removeClass(	'gleitfach_selected'	);
+		$(gleitfach.overlaid)   	.addClass(   	'gleitfach_selected'	);
+		})
+	.hide();
+				
+},//menuInit
+
 overlay: function(element){
 	gleitfach.overlaid = $(element).blur()[0];
 	gleitfach.overlayEl
@@ -543,7 +508,8 @@ overlay: function(element){
 		.width(   $(element).width()    )
 		.height(  $(element).height()   )
 		.focus();
-},
+},//overlay
+
 overlayInit: function(){
 
 return $('<div/>')
