@@ -12,12 +12,10 @@
    [hover]         Display a border around elements which would be
                          selected on click, wheel-up, wheel-down
 
-{t}='Translation'
-   [drag]          An element can be dragged to a new position
-
-{s}='Scaling'
-   [drag]          An element can be dragged, scaling it
-   [S-drag]        An element can be dragged, cropping it
+{s}='Shift'
+   [drag (center)] An element can be dragged to a new position
+   [drag   (edge)] An element can be dragged, scaling it
+   [S-drag (edge)] An element can be dragged, cropping it
    
 {a}='Anchor'
    [click]         Generate an empty anchor at click
@@ -31,6 +29,8 @@
    [hover]         Allow the target's content to be edited. 
    [S-enter]       End text editing mode, revert to 'New Text'
    [drag&drop]     Drop the selected text into an anchor
+
+	// actually, switching between text boxes should be less hairtrigger
 
 {c}='Edit CSS'
    [hover]         Display style in an editable popup
@@ -52,20 +52,14 @@ gleitfach = {
 
 
 init: function(startingParent){
+
+
 if( 	$(startingParent).addClass('gleitfach_selected').length);
 else 	        $('body').addClass('gleitfach_selected');
-
-	
-/*****************************
- * jQuery selectors etc, declared
- * for expedient event binding
- *****************************/
  
-  gleitfach.child_image = '.gleitfach_selected	>div>img.gleitfach_image';
-  gleitfach.text        = '.gleitfach_selected	>div[contenteditable]';
-  gleitfach.overlayEl   = gleitfach.overlayInit();
-  gleitfach.menu        = gleitfach.menuInit();
-  gleitfach.current_mode = 'gleitfach_mode_inactive';
+gleitfach.overlay_element = gleitfach.overlay_init();
+gleitfach.menu            = gleitfach.menu_init();
+gleitfach.current_mode    = 'gleitfach_mode_inactive';
 
 
 /***************************
@@ -80,72 +74,81 @@ else 	        $('body').addClass('gleitfach_selected');
  ***************************/
 $(document).on('keypress',function(e){
 
-  switch( e.charCode ){
+
+
+gleitfach.overlay_element.hide();
+
+
+
+if(gleitfach.current_mode == 'gleitfach_mode_edit_text'){
+	if(e.charCode == 13 && e.shiftKey)
+		return gleitfach.mode_switch('gleitfach_mode_new_text');
+	else	return; 	}
+
+else switch( e.charCode ){
 
     case 105: //'i' -> inactive
-	var new_mode = 'gleitfach_mode_inactive';
-	break;
-	
-    case 116: //'t' -> translate
-	var new_mode = 'gleitfach_mode_translate';
-	break;
-		
-    case 115: //'s' -> scale
-	var new_mode = 'gleitfach_mode_scale';
-	break;
-
-    case 111: //'o' -> scale
-	var new_mode = 'gleitfach_mode_reorder';
-	break;
-
-    case 110: //'n' -> new text
-	var new_mode = 'gleitfach_mode_new_text';
-	break;
-
-    case 101: //'e' -> edit text
-	var new_mode = 'gleitfach_mode_edit_text';
-	break;
-	
-    case 99:  //'c' -> edit CSS
-	var new_mode = 'gleitfach_mode_edit_css';
-	break;
-	
-    case 114:  //'r' -> delete
-	var new_mode = 'gleitfach_mode_delete';
+	gleitfach.mode_switch('gleitfach_mode_inactive');
 	break;
 	
     case 100: //'d' -> navigate
-	var new_mode = 'gleitfach_mode_navigate';
+	gleitfach.mode_switch('gleitfach_mode_navigate');
+	break;
+	
+    case 115: //'s' -> shift
+	gleitfach.mode_switch('gleitfach_mode_shift');
 	break;
 
-    default:
-        return;
+    case 111: //'o' -> reorder
+	gleitfach.mode_switch('gleitfach_mode_reorder');
+	break;
+
+    case 110: //'n' -> new text
+	gleitfach.mode_switch('gleitfach_mode_new_text');
+	break;
+
+    case 101: //'e' -> edit text
+	gleitfach.mode_switch('gleitfach_mode_edit_text');
+	break;
+	
+    case 99:  //'c' -> edit CSS
+	gleitfach.mode_switch('gleitfach_mode_edit_css');
+	break;
+	
+    case 114:  //'r' -> delete
+	gleitfach.mode_switch('gleitfach_mode_delete');
+	break;
+
   };//switch
 
-//switch to the new mode
-$('.gleitfach_selected')
-	.removeClass(gleitfach.current_mode)
-	.addClass(new_mode);
-gleitfach.current_mode = new_mode;
 
 });
 //keypress-modeswitch
 
 
 
-/*****************************
- * TRANSLATE mode:
+
+
+/***************************
+ * SHIFT mode:
  * 
+ * Depending on where a drag 
+ * starts within an element:
+ * 
+ * (center)
  * The element will track 
  * with the mouse during drag.
  * 
- *****************************/
+ * (edge,corner)
+ * The edge/corner will track
+ * with the mouse.
+ * 
+ ***************************/
 $(document).on( 'mouseenter',
-		'.gleitfach_mode_translate > :not(.gleitfach_actual_translate)',
-		function(e){
-			gleitfach.overlay(this);
-		});
-//hover-translate
+		'.gleitfach_mode_shift > '+
+		':not(.gleitfach_actual_scale,  .gleitfach_actual_translate)',
+		function(){gleitfach.overlay(this)}	);
+//hover-shift
 
 $('.gleitfach_actual_translate')
   .drag({	  
@@ -165,28 +168,13 @@ $('.gleitfach_actual_translate')
 		},//inter
 
 	post: function(){
-		$(this).removeClass('gleitfach_actual_translate');
+		$(this)	.removeClass('gleitfach_actual_translate')
+			.trigger('mouseenter');
+		
 		},//post
 
   });
-//drag-translate
-
-
-
-/***************************
- * SCALE mode:
- * 
- * Where the drag starts within 
- * the element determines which
- * corner will track with the mouse.
- * 
- ***************************/
-$(document).on( 'mouseenter',
-		'.gleitfach_mode_scale > :not(.gleitfach_actual_scale)',
-		function(e){
-			gleitfach.overlay(this);
-		});
-//hover-scale
+//drag-actual_translate
 
 $('.gleitfach_actual_scale')
   .drag({
@@ -199,13 +187,7 @@ $('.gleitfach_actual_scale')
 
 	inter:function(e,c){
 		$(this).corners(c._.quadrant,{x:e.pageX,y:e.pageY});
-		
-		// for cropping, I need to either store all the 
-		// children's offsets or wrapInner them in a 
-		// temporary <div/> to hold the offset
-		
-		console.log('left',$(this).offset().left,'top',$(this).offset().top);
-		
+	
 		if(e.shiftKey) return;
 		$(c._.wrapper).offset(c._.offset);
 		},//inter
@@ -216,8 +198,9 @@ $('.gleitfach_actual_scale')
 		$(c._.wrapper).contents().unwrap();
 
 		$(this)	.removeClass('gleitfach_actual_scale')
-			.removeData( 'gleitfach_overlay_corner');
-			
+			.removeData( 'gleitfach_overlay_corner')
+			.trigger('mouseenter');
+		
 		if(e.shiftKey) return;
 		$(this) .contents()
 			.offset(function(i,v){return {
@@ -228,7 +211,7 @@ $('.gleitfach_actual_scale')
 		},//post
 
   });
-//drag-scale
+//drag-actual_scale
   
 
 
@@ -243,16 +226,16 @@ $('.gleitfach_actual_scale')
  ***************************/
 $(document).on('mousedown','.gleitfach_mode_edit_css > *',function(e){
  
-	 e.preventDefault();
-	 e.stopPropagation();
+	e.preventDefault();
+	e.stopPropagation();
 	 
-	 gleitfach.overlaid = e.target;
-	 $(gleitfach.menu)
+	gleitfach.overlaid = e.target;
+	$(gleitfach.menu)
 		.detach().appendTo('body').show()
 		.offset({left:e.pageX-100,top:e.pageY-100});
 	
 });
-//click
+//click-edit_css
 
 
 
@@ -279,7 +262,7 @@ $(document)
 		$(this).prev().before($(this).detach());
 	
 	});
-//mousewheel
+//mousewheel-reorder
 
 
 
@@ -335,27 +318,33 @@ $(document)
  ***************************/
  $(document).on('click','.gleitfach_mode_new_text',function(e){
 	 
+	//switch to the edit text mode
+	gleitfach.mode_switch('gleitfach_mode_edit_text');
+	
 	$('<div/>')
 		.appendTo('.gleitfach_selected')
-		.attr('contenteditable','true')
+		.addClass('gleitfach_element_text_div')
 		.css('position','absolute')
 		.offset({left:e.pageX,top:e.pageY})
 		.height(100).width(200)
+		.trigger('mouseenter')
 		.focus();
  });
- /*
+//click-new_text
+
+/***************************
+ * EDIT TEXT mode:
+ * 
+ * allow TEXT <div/>s to be
+ * edited.
+ * 
+ ***************************/
  $(document).on({
-	 mouseenter:function(){
-					$(this).attr('contenteditable','true');
-					  this.focus();
-					  },
-	 mouseleave:function(){
-					$(this).attr('contenteditable','false');
-					  this.blur();
-					  },
-	},gleitfach.text);
- //hover
-*/
+	 mouseenter:function(){$(this).attr('contenteditable','true');	  },
+	 mouseleave:function(){$(this).attr('contenteditable','false');  },
+	},'.gleitfach_mode_edit_text > .gleitfach_element_text_div');
+//hover-edit_text
+
 
 
 
@@ -366,6 +355,7 @@ $(document)
  * 
  * dblclick deletes,
  * hover displays a border
+ * 
  ***************************/
  $(document).on('dblclick','.gleitfach_mode_delete > *',function(e){
 
@@ -474,7 +464,7 @@ return $("<div />")
 
 
 
-menuInit: function(){
+menu_init: function(){
 
 return $('<div/>')
 	.css('position','absolute')
@@ -497,11 +487,11 @@ return $('<div/>')
 		})
 	.hide();
 				
-},//menuInit
+},//menu_init
 
 overlay: function(element){
 	gleitfach.overlaid = $(element).blur()[0];
-	gleitfach.overlayEl
+	gleitfach.overlay_element
 		.show().detach().appendTo(element)
 		.css('position','absolute')
 		.offset(  $(element).offset()   )
@@ -510,7 +500,7 @@ overlay: function(element){
 		.focus();
 },//overlay
 
-overlayInit: function(){
+overlay_init: function(){
 
 return $('<div/>')
 	.prependTo('body')
@@ -532,12 +522,26 @@ return $('<div/>')
 						[$(e.target).prevAll().length]	);
 
 		$(gleitfach.overlaid).trigger(e);
-		$(gleitfach.overlayEl).trigger('mouseleave');
+		$(gleitfach.overlay_element).trigger('mouseleave');
 		e.preventDefault();
 		e.stopPropagation();
 		return;	
 	});//mousedown
-},
+},//overlay_init
+
+mode_switch: function(new_mode){
+	
+	$('.gleitfach_element_text_div')
+		.trigger('mouseleave')
+		.blur();
+		
+	$('.gleitfach_selected')
+		.removeClass(gleitfach.current_mode)
+		.addClass(new_mode);
+		
+	gleitfach.current_mode = new_mode;
+	
+},//mode_switch
 
 };//gleitfach
 

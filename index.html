@@ -5,32 +5,43 @@
 <script src="js/gleitfach.js"		 ></script>
 <style  type="text/css">
 
-div#gleitfach_overlay_root {opacity:0.5;height:100%;width:100%;position:absolute}
+.gleitfach_mode_edit_text > div.gleitfach_element_text_div:hover {outline:5px solid black}
+
+</style>
+<style  type="text/css">
+
+div#gleitfach_overlay_root {opacity:0.5;height:100%;width:100%;position:absolute;cursor:move}
 div#gleitfach_overlay_root > div {position:absolute}
 
 /****************
- *	sides:		*
+ *    sides:	*
  ****************/
-div#gleitfach_overlay_root > div:nth-child(even) {background-color:blue}
+//div#gleitfach_overlay_root > div:nth-child(even) {background-color:blue}
 
 /*	vertical:	 */
-div#gleitfach_overlay_root > div:nth-child(4n+0){width:20%;height:60%}
-div#gleitfach_overlay_root > div:nth-child(8)	{top:20%;right:0}
-div#gleitfach_overlay_root > div:nth-child(4)	{top:20%;left: 0}
+div#gleitfach_overlay_root > div:nth-child(4n+0){top:20%;width:20%;height:60%}
+div#gleitfach_overlay_root > div:nth-child(8)	{right:0;cursor:e-resize}
+div#gleitfach_overlay_root > div:nth-child(4)	{left: 0;cursor:w-resize}
 
 /*	horizontal:	 */
-div#gleitfach_overlay_root > div:nth-child(4n+2){height:20%;width:60%}
-div#gleitfach_overlay_root > div:nth-child(6)	{left:20%;top:	0}
-div#gleitfach_overlay_root > div:nth-child(2)	{left:20%;bottom:0}
+div#gleitfach_overlay_root > div:nth-child(4n+2){left:20%;height:20%;width:60%}
+div#gleitfach_overlay_root > div:nth-child(6)	{top:	0;cursor:n-resize}
+div#gleitfach_overlay_root > div:nth-child(2)	{bottom:0;cursor:s-resize}
 
 /****************
- *	corners:	*
+ *   corners:	*
  ****************/
-div#gleitfach_overlay_root > div:nth-child(odd) {height:20%;width:20%;background-color:black}
-div#gleitfach_overlay_root > div:nth-child(4n+1) {top:	0}
+div#gleitfach_overlay_root > div:nth-child(odd) {height:20%;width:20%}//;background-color:black}
+
+div#gleitfach_overlay_root > div:nth-child(4n+1) {top:	 0}
 div#gleitfach_overlay_root > div:nth-child(4n+3) {bottom:0}
-div#gleitfach_overlay_root > div:nth-child(-2n+3){left:	0}
-div#gleitfach_overlay_root > div:nth-child( 2n+5){right:0}
+div#gleitfach_overlay_root > div:nth-child(-2n+3){left:	 0}
+div#gleitfach_overlay_root > div:nth-child( 2n+5){right: 0}
+
+div#gleitfach_overlay_root > div:nth-child(1) {cursor:nw-resize}
+div#gleitfach_overlay_root > div:nth-child(3) {cursor:sw-resize}
+div#gleitfach_overlay_root > div:nth-child(5) {cursor:ne-resize}
+div#gleitfach_overlay_root > div:nth-child(7) {cursor:se-resize}
 
 </style>
 <script type="text/javascript">
