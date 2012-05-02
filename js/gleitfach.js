@@ -60,7 +60,7 @@ else 	        $('body').addClass('gleitfach_selected');
 gleitfach.overlay_element = gleitfach.overlay_init();
 gleitfach.menu            = gleitfach.menu_init();
 gleitfach.current_mode    = 'gleitfach_mode_inactive';
-
+gleitfach.mode_switch(gleitfach.current_mode);
 
 /***************************
  * mode switching:
@@ -218,6 +218,43 @@ $('.gleitfach_actual_scale')
 
 
 /***************************
+ * DOM navigation mode:
+ * 
+ * Select a different DOM
+ * element as gleitfach_selected
+ * 
+ ***************************/
+$(document).on('mousewheel',function(e){
+
+	if($(this).find('.gleitfach_mode_navigate').length);
+	else return;
+	e.preventDefault();
+	e.stopPropagation();
+
+	if(e.originalEvent.wheelDelta < 0) 
+	if(!$('.gleitfach_selected').is('body')) {
+		gleitfach.reselect( $('.gleitfach_selected').parent()[0] );
+		console.log(' - ', $('.gleitfach_selected') );
+	}
+
+}).on('mousewheel','.gleitfach_mode_navigate > *',function(e){
+
+	e.preventDefault();
+	e.stopPropagation();
+
+	if(e.originalEvent.wheelDelta > 0) {
+		gleitfach.reselect( this );
+		console.log(' + ', $('.gleitfach_selected') );
+	}
+	
+});
+//wheel-navigate
+
+
+
+
+
+/***************************
  * CSS editing mode:
  * 
  * Open pop-around MENU
@@ -248,6 +285,7 @@ $(document).on('mousedown','.gleitfach_mode_edit_css > *',function(e){
  * DOM order with the mousewheel
  * 
  *****************************/
+ /*
 $(document)
 .on('mousewheel','.gleitfach_mode_reorder > *',
     function(e){
@@ -262,8 +300,8 @@ $(document)
 		$(this).prev().before($(this).detach());
 	
 	});
-//mousewheel-reorder
-
+//wheel-reorder
+*/
 
 
 
@@ -541,6 +579,18 @@ mode_switch: function(new_mode){
 		
 	gleitfach.current_mode = new_mode;
 	
+},//mode_switch
+
+reselect: function(new_selected){
+
+	$('.gleitfach_selected')
+		.removeClass(gleitfach.current_mode)
+		.removeClass('gleitfach_selected');			
+
+	$(new_selected)
+		.addClass(gleitfach.current_mode)
+		.addClass('gleitfach_selected');
+
 },//mode_switch
 
 };//gleitfach
