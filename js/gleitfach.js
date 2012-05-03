@@ -226,27 +226,24 @@ $('.gleitfach_actual_scale')
  ***************************/
 $(document).on('mousewheel',function(e){
 
-	if($(this).find('.gleitfach_mode_navigate').length);
-	else return;
+	if(	$(document).find('.gleitfach_mode_navigate').length	&&
+		e.originalEvent.wheelDelta < 0				&&
+		$('.gleitfach_selected').is(':not(body)')	);
+			else return;
+
 	e.preventDefault();
 	e.stopPropagation();
-
-	if(e.originalEvent.wheelDelta < 0) 
-	if(!$('.gleitfach_selected').is('body')) {
-		gleitfach.reselect( $('.gleitfach_selected').parent()[0] );
-		console.log(' - ', $('.gleitfach_selected') );
-	}
+	gleitfach.reselect( $('.gleitfach_selected').parent()[0] );
 
 }).on('mousewheel','.gleitfach_mode_navigate > *',function(e){
 
+	if(	e.originalEvent.wheelDelta > 0);
+			else return;
+
 	e.preventDefault();
 	e.stopPropagation();
+	gleitfach.reselect( this );
 
-	if(e.originalEvent.wheelDelta > 0) {
-		gleitfach.reselect( this );
-		console.log(' + ', $('.gleitfach_selected') );
-	}
-	
 });
 //wheel-navigate
 
