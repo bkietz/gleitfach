@@ -60,7 +60,7 @@ else 	        $('body').addClass('gleitfach_selected');
 gleitfach.overlay_element = gleitfach.overlay_init();
 gleitfach.menu            = gleitfach.menu_init();
 gleitfach.current_mode    = 'gleitfach_mode_inactive';
-gleitfach.mode_switch(gleitfach.current_mode);
+gleitfach.mode_switch(      gleitfach.current_mode	);
 
 /***************************
  * mode switching:
@@ -145,8 +145,7 @@ else switch( e.charCode ){
  * 
  ***************************/
 $(document).on( 'mouseenter',
-		'.gleitfach_mode_shift > '+
-		':not(.gleitfach_actual_scale,  .gleitfach_actual_translate)',
+		'.gleitfach_mode_shift > :not(.gleitfach_actual_scale,  .gleitfach_actual_translate)',
 		function(){gleitfach.overlay(this)}	);
 //hover-shift
 
@@ -223,29 +222,48 @@ $('.gleitfach_actual_scale')
  * Select a different DOM
  * element as gleitfach_selected
  * 
+ * Some explicit mode checking is
+ * necessary, since this mode 
+ * accepts some events from 
+ * outside the selected element.
+ * 
  ***************************/
 $(document).on('mousewheel',function(e){
 
-	if(	$(document).find('.gleitfach_mode_navigate').length	&&
-		e.originalEvent.wheelDelta < 0				&&
-		$('.gleitfach_selected').is(':not(body)')	);
+	if(	$('.gleitfach_mode_navigate').length		&&
+		e.originalEvent.wheelDelta < 0			&&
+		$('.gleitfach_selected').is(':not(body)')		);
 			else return;
 
 	e.preventDefault();
 	e.stopPropagation();
-	gleitfach.reselect( $('.gleitfach_selected').parent()[0] );
+	gleitfach.select( $('.gleitfach_selected').parent()[0] );
 
-}).on('mousewheel','.gleitfach_mode_navigate > *',function(e){
+})
+//wheel(down)-navigate
+.on('mousewheel','.gleitfach_mode_navigate > *',function(e){
 
-	if(	e.originalEvent.wheelDelta > 0);
+	if(	e.originalEvent.wheelDelta > 0		);
 			else return;
 
 	e.preventDefault();
 	e.stopPropagation();
-	gleitfach.reselect( this );
+	gleitfach.select( this );
+
+})
+//wheel(up)-navigate
+.on('click',function(e){
+
+	if(	$('.gleitfach_mode_navigate').length	);
+			else return;
+
+	e.preventDefault();
+	e.stopPropagation();
+	gleitfach.select( e.target );
 
 });
-//wheel-navigate
+//click-navigate
+
 
 
 
@@ -262,12 +280,12 @@ $(document).on('mousedown','.gleitfach_mode_edit_css > *',function(e){
  
 	e.preventDefault();
 	e.stopPropagation();
-	 
+
 	gleitfach.overlaid = e.target;
 	$(gleitfach.menu)
 		.detach().appendTo('body').show()
 		.offset({left:e.pageX-100,top:e.pageY-100});
-	
+
 });
 //click-edit_css
 
@@ -351,7 +369,7 @@ $(document)
  * to start typing
  * 
  ***************************/
- $(document).on('click','.gleitfach_mode_new_text',function(e){
+/* $(document).on('click','.gleitfach_mode_new_text',function(e){
 	 
 	//switch to the edit text mode
 	gleitfach.mode_switch('gleitfach_mode_edit_text');
@@ -364,8 +382,51 @@ $(document)
 		.height(100).width(200)
 		.trigger('mouseenter')
 		.focus();
- });
+ });*/
 //click-new_text
+ $('.gleitfach_mode_new_text')
+  .drag({
+
+        pre:  function(e,c){
+	        c._ = {
+
+		    div:
+			$('<div/>')
+        	        .appendTo('.gleitfach_selected')
+	                .css('position','absolute')
+        	        .offset({left:e.pageX,top:e.pageY})[0],
+
+                    corner:  
+			{x:e.pageX,     y:e.pageY,}
+
+                  };//c._
+                },//pre
+
+        inter:function(e,c){
+
+	console.log(c._.div);
+                $(c._.div).corners('TL',
+			{x:e.pageX,     y:e.pageY,},
+			c._.corner
+			);//corners
+                },//inter
+
+        post: function(e,c){
+		$(c._.div)
+			.addClass('gleitfach_element_text_div')
+	                .trigger('mouseenter')
+        	        .focus();
+                },//post
+
+  });
+//drag-new_text
+
+
+
+
+
+
+
 
 /***************************
  * EDIT TEXT mode:
@@ -578,7 +639,7 @@ mode_switch: function(new_mode){
 	
 },//mode_switch
 
-reselect: function(new_selected){
+select: function(new_selected){
 
 	$('.gleitfach_selected')
 		.removeClass(gleitfach.current_mode)
