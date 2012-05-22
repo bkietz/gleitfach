@@ -43,95 +43,106 @@ $.paramsPOST()	// flattens an Object so that its
 
 $.extend($.prototype,{
 
-corners: function(targetCorner, setValue, oppositeSetValue){
+corners: function(){
 /*********************
  * $('').corners() gets/sets the positions
  *  of the queried element's corners/center.
- * 
+ *  
  * corners are indicated with two characters,
  * the first denoting vertical and the second
  * horizontal position: 'TL' = top left, etc.
  * 
- * If a corner alone is specified, corners()
- * returns the position of that corner 
- * formatted: {x:304,y:345}
+ * Possible arguments:
+ *********************
  * 
- * If a corner is specified with two positions,
- * the element is positioned and resized such
- * that the specified corner is placed at the 
- * first position, and the corner opposite it
- * at the second.
+ * 'TL'
+ * 	If only one string is input, return
+ * 	the position of the specified corner
+ * 	of this element.
+ *  
+ * 'BR',{x:100,y:120}
+ * 	Move the specified corner of this 
+ * 	element to the input position, without 
+ * 	moving any other corners.
  * 
+ * {x:100,y:120},{x:50,y:200} 
+ * 	Move/resize the element so that two of 
+ * 	its corners lie on the input positions.
+ * 
+ * {top:100,right:230,left:200}
+ * 	Move/resize the element to satisfy the 
+ * 	input conditions.
+ * 
+ * 100,200,300,400
+ * 	Alias for 
+ * 	{left:100,top:200,width:300,height:400}
+ *
  * If no arguments are provided, all corners'
  * positions are returned in a single object.
  * 
- * If only one position is given, the opposite
- * corner is held constant.
- * 
  ***********************/
 
-
-
-
-	// no arguments:
-	if(targetCorner == undefined)
-			return {TL:this.corners('TL'),
-					TR:this.corners('TR'),
-					BL:this.corners('BL'),
-					BR:this.corners('BR'),
-				center:this.corners('center')};
-
-
-	// targetCorner only:
-	if(setValue == null) {
-	var ret = {};
 	
-	if(targetCorner[0] == 'T')
-		ret.y = this.offset().top;
+
+switch(typeof arguments[0]){
+
+case 'undefined':
+   return {	TL:this.corners('TL'),
+		TR:this.corners('TR'),
+		BL:this.corners('BL'),
+		BR:this.corners('BR')	  };
+
+case 'string':
+	if(arguments.length == 1)
+	// if only one argument is given, 
+	// return the specified corner's position
+	return {
+		y:this.offset().top +
+		  parseInt((arguments[0][0]=='T')?0:this.height()),
+		x:this.offset().left +
+		  parseInt((arguments[0][1]=='L')?0:this.width())
+		};
+
+	// if a position and a corner are specified,
+	// conform the corner to that position. 
+	var 	h = $(this).height(),		w = $(this).width(),
+		x = arguments[1].x,		y = arguments[1].y,
+		t = $(this).offset().top,	l = $(this).offset().left;
+
+	if(arguments[0][0] == 'T')
+		$(this).css({height:t+h - y,
+				top:y	});
 	else
-		ret.y = this.offset().top + this.height();
-		
-	if(targetCorner[1] == 'L')
-		ret.x = this.offset().left;
-	else 
-		ret.x = this.offset().left + this.width();
-		
-	if(targetCorner == 'center')
-		ret = {	x:this.offset().left + parseInt(this.width() /2) ,
-				y:this.offset().top  + parseInt(this.height()/2) };
-				
-	return ret;
-	}//	if(setValue == null)
+		$(this).height(y-t);
 
-
-
-
-	var newCSS = {};
 	
-	if(targetCorner[0] == 'T'){
-		newCSS.height = this.offset().top - setValue.y + this.height();
-		newCSS.top 	  = setValue.y;
-	} else {
-		newCSS.height = setValue.y - this.offset().top;
-	}//vertical
+	if(arguments[0][1] == 'L')
+		$(this).css({  width:l+w - x,
+				left:x	});
+	else
+		$(this).width(x-l);
 
-	if(targetCorner[1] == 'L'){
-		newCSS.width = this.offset().left - setValue.x + this.width();
-		newCSS.left  = setValue.x;
-	} else {
-		newCSS.width = setValue.x - this.offset().left;
-	}//horizontal
-
-	this.css(newCSS);
-	
-	if(oppositeSetValue != undefined)
-		this.corners(
-			(targetCorner[0] == 'T'?'B':'T')+
-			(targetCorner[1] == 'L'?'R':'L'),
-		
-			oppositeSetValue);
-	
+      
 	return this;
+
+case 'object':
+   if(arguments.length == 2)
+   return this.corners(
+		Math.min(arguments[0].x,arguments[1].x),
+		Math.min(arguments[0].y,arguments[1].y),
+		Math.abs(arguments[0].x-arguments[1].x),
+		Math.abs(arguments[0].y-arguments[1].y));
+   else return this.css(arguments[0]);
+
+case 'number':
+   return this.css({
+		left:	arguments[0],
+		top: 	arguments[1],
+		width:	arguments[2],
+		height:	arguments[3]	});
+
+}//switch
+
 },//corners
 
 
