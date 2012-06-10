@@ -2,50 +2,8 @@
 <head>
 <script src="js/jquery.js"			 ></script>
 <script src="js/tweaks.js"			 ></script>
-<script src="js/gleitfach.js"		 ></script>
-<style  type="text/css">
-
-.gleitfach_mode_edit_text > div.gleitfach_element_text_div       {outline:2px dotted orange}
-.gleitfach_mode_edit_text > div.gleitfach_element_text_div:hover {outline:3px solid orange}
-.gleitfach_mode_navigate	   {outline:3px dotted orange}
-
-</style>
-<style  type="text/css">
-
-div#gleitfach_overlay_root {opacity:0.5;height:100%;width:100%;position:absolute;cursor:move}
-div#gleitfach_overlay_root > div {position:absolute}
-
-/****************
- *    sides:	*
- ****************/
-//div#gleitfach_overlay_root > div:nth-child(even) {background-color:blue}
-
-/*	vertical:	 */
-div#gleitfach_overlay_root > div:nth-child(4n+0){top:25%;width:25%;height:50%}
-div#gleitfach_overlay_root > div:nth-child(8)	{right:0;cursor:e-resize}
-div#gleitfach_overlay_root > div:nth-child(4)	{left: 0;cursor:w-resize}
-
-/*	horizontal:	 */
-div#gleitfach_overlay_root > div:nth-child(4n+2){left:25%;height:25%;width:50%}
-div#gleitfach_overlay_root > div:nth-child(6)	{top:	0;cursor:n-resize}
-div#gleitfach_overlay_root > div:nth-child(2)	{bottom:0;cursor:s-resize}
-
-/****************
- *   corners:	*
- ****************/
-div#gleitfach_overlay_root > div:nth-child(odd) {height:25%;width:25%}//;background-color:black}
-
-div#gleitfach_overlay_root > div:nth-child(4n+1) {top:	 0}
-div#gleitfach_overlay_root > div:nth-child(4n+3) {bottom:0}
-div#gleitfach_overlay_root > div:nth-child(-2n+3){left:	 0}
-div#gleitfach_overlay_root > div:nth-child( 2n+5){right: 0}
-
-div#gleitfach_overlay_root > div:nth-child(1) {cursor:nw-resize}
-div#gleitfach_overlay_root > div:nth-child(3) {cursor:sw-resize}
-div#gleitfach_overlay_root > div:nth-child(5) {cursor:ne-resize}
-div#gleitfach_overlay_root > div:nth-child(7) {cursor:se-resize}
-
-</style>
+<script src="js/gleitfach.js"		 	 ></script>
+<link rel="stylesheet" href="css/gleitfach.css" />
 <script type="text/javascript">
 $(function(){gleitfach.init()});
 </script>

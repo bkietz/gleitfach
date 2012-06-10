@@ -74,11 +74,7 @@ gleitfach.mode_switch(      gleitfach.current_mode	);
  ***************************/
 $(document).on('keypress',function(e){
 
-
-
 gleitfach.overlay_element.hide();
-
-
 
 if(gleitfach.current_mode == 'gleitfach_mode_edit_text'){
 	if(e.charCode == 13 && e.shiftKey)
@@ -369,8 +365,8 @@ $(document)
  * to start typing
  * 
  ***************************/
-/* $(document).on('click','.gleitfach_mode_new_text',function(e){
-	 
+ $(document).on('dblclick','.gleitfach_mode_new_text',function(e){
+	
 	//switch to the edit text mode
 	gleitfach.mode_switch('gleitfach_mode_edit_text');
 	
@@ -382,8 +378,8 @@ $(document)
 		.height(100).width(200)
 		.trigger('mouseenter')
 		.focus();
- });*/
-//click-new_text
+ });
+//dblclick-new_text
  $('.gleitfach_mode_new_text')
   .drag({
 
@@ -393,8 +389,8 @@ $(document)
 		    div:
 			$('<div/>')
         	        .appendTo('.gleitfach_selected')
-	                .css('position','absolute')
-        	        .offset({left:e.pageX,top:e.pageY})[0],
+			.addClass('gleitfach_actual_new_text')
+	                .css('position','absolute')[0],
 
                     corner:  
 			{x:e.pageX,     y:e.pageY,}
@@ -403,17 +399,16 @@ $(document)
                 },//pre
 
         inter:function(e,c){
-
-	console.log(c._.div);
-                $(c._.div).corners('TL',
-			{x:e.pageX,     y:e.pageY,},
-			c._.corner
-			);//corners
+                $(c._.div).corners(c._.corner,	{x:e.pageX,y:e.pageY,});
                 },//inter
 
         post: function(e,c){
+	        //switch to edit text mode
+	        gleitfach.mode_switch('gleitfach_mode_edit_text');
+
 		$(c._.div)
-			.addClass('gleitfach_element_text_div')
+			.removeClass(	'gleitfach_actual_new_text')
+			.addClass(	'gleitfach_element_text_div')
 	                .trigger('mouseenter')
         	        .focus();
                 },//post

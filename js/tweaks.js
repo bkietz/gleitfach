@@ -15,26 +15,26 @@ jQuery tweaks and other functions.
 
 
 $('').corners()		// gets/sets the positions of the
-					// queried element's corners/center
+			// queried element's corners/center
 					
 $('').drag()	// adds bindings for events in 
-				// a drag (start, end, etc.)
+		// a drag (start, end, etc.)
 				
 $('').serializeRequest()	// generate an Object from
-							// a <form>'s values:
-							// {field1:	value1,
-							//  filed2:	value2
-							//  ...}
+				// a <form>'s values:
+				// {field1:	value1,
+				//  filed2:	value2
+				//  ...}
 							
-$('').drop()		// adds bindings for drag&drop
+$('').drop()	// adds bindings for drag&drop
 
 $.paramsPOST()	// flattens an Object so that its
-				// structure is preserved under POST
+		// structure is preserved under POST
 				
 "hello".hexEncode()		// encode each ASCII to two
-						// hexadecimal characters
+				// hexadecimal characters
 						
- * 
+ 
  ***********************/
  
  
@@ -93,37 +93,32 @@ case 'undefined':
 		BR:this.corners('BR')	  };
 
 case 'string':
+	// some short variable names
+	var	h = this.height(),	w = this.width(),
+		t = this.offset().top,	l = this.offset().left;
+
 	if(arguments.length == 1)
 	// if only one argument is given, 
 	// return the specified corner's position
-	return {
-		y:this.offset().top +
-		  parseInt((arguments[0][0]=='T')?0:this.height()),
-		x:this.offset().left +
-		  parseInt((arguments[0][1]=='L')?0:this.width())
-		};
+	return {y:  t + ((arguments[0][0]=='T')?0:h),
+		x:  l + ((arguments[0][1]=='L')?0:w)};
 
 	// if a position and a corner are specified,
 	// conform the corner to that position. 
-	var 	h = $(this).height(),		w = $(this).width(),
-		x = arguments[1].x,		y = arguments[1].y,
-		t = $(this).offset().top,	l = $(this).offset().left;
+	var	x = arguments[1].x,	y = arguments[1].y;
 
-	if(arguments[0][0] == 'T')
-		$(this).css({height:t+h - y,
-				top:y	});
-	else
-		$(this).height(y-t);
+	if(arguments[0][0] == 'B')
+		this.height(y-t);
+	else	this.css({	height: t+h - y,
+				top:    y	});
 
-	
-	if(arguments[0][1] == 'L')
-		$(this).css({  width:l+w - x,
-				left:x	});
-	else
-		$(this).width(x-l);
-
+	if(arguments[0][1] == 'R')
+		this.width(x-l);
+	else	this.css({	width: l+w - x,
+				left:  x	});
       
 	return this;
+
 
 case 'object':
    if(arguments.length == 2)
