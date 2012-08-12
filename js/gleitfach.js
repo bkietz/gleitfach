@@ -111,6 +111,10 @@ else switch( e.charCode ){
 	gleitfach.mode_switch('gleitfach_mode_edit_css');
 	break;
 	
+    case 97:  //'a' -> new anchor
+	gleitfach.mode_switch('gleitfach_mode_new_anchor');
+	break;
+	
     case 114:  //'r' -> delete
 	gleitfach.mode_switch('gleitfach_mode_delete');
 	break;
@@ -264,6 +268,20 @@ $(document).on('mousewheel',function(e){
 
 
 
+/***************************
+ * ANCHOR mode:
+ * 
+ * Generate an anchor at the
+ * mouse and link to another 
+ * portion of the document
+ * 
+ ***************************/
+
+
+
+
+
+
 
 /***************************
  * CSS editing mode:
@@ -329,8 +347,10 @@ $(document)
 		 .replace('data:base64,',
 				  'data:'
 					+ e.target.fileType + 
-				  ';base64,'),
-		{width:600,height:600});
+				  ';base64,'))
+//		.height(600)
+//		.css({width:600,height:600})
+;
  };
 
  $('.gleitfach_selected')
