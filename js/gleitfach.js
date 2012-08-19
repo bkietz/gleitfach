@@ -109,6 +109,8 @@ else switch( e.charCode ){
 	
     case 99:  //'c' -> edit CSS
 	gleitfach.mode_switch('gleitfach_mode_edit_css');
+	//CSS HACK
+	gleitfach.editor.open();
 	break;
 	
     case 97:  //'a' -> new anchor
@@ -302,6 +304,45 @@ $(document).on('mousedown','.gleitfach_mode_edit_css > *',function(e){
 
 });
 //click-edit_css
+
+//CSS HACK
+gleitfach.editor = window.open('','','width=500,height=500');
+window.onbeforeunload = function(e)
+{
+      gleitfach.editor.close()
+}
+gleitfach.editor.document.write('<p><br/></p>');
+gleitfach.editor.document.body.contentEditable=true;
+gleitfach.editor.document.body.style.listStyleType='none';
+
+
+// improve this replace's regex to deal with <br> more carefully:
+// <br> → </li><li>   however   <br><br> → </li><li><br></li><li>
+gleitfach.editor.document.body.innerText = document.getElementsByTagName('style')[0].innerText
+gleitfach.editor.document.body.innerHTML = "<li>"+ gleitfach.editor.document.body.innerHTML.replace(/<br>/g,'</li><li>') +"</li>";
+
+
+var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+gleitfach.editor.obsEditorUpdateStyle = new MutationObserver(function(ms) {
+                ms.forEach(function(m){        console.log(m);         });
+                document.getElementsByTagName('style')[0].innerHTML = gleitfach.editor.document.body.innerText;
+                })
+        .observe(  gleitfach.editor.document.body,  //should refer only to the line children somehow
+        {       subtree: true,
+
+                childList: true,//watch for added lines
+
+//              attributes: true,
+//              attributeFilter: ['style'],
+//              attributeOldValue: true,
+
+                characterData: true,
+                characterDataOldValue: true,
+        });
+
+
+
+
 
 
 
